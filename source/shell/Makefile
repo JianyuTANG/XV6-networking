@@ -30,6 +30,12 @@ OBJS = \
 	var_in_kernel.o\
 	sysconsole.o\
 	vm.o\
+	arp.o\
+	arp_frame.o\
+	pci.o\
+	nic.o\
+	e1000.o\
+	util.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -80,7 +86,10 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 INCLDIR = ./include
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
+CFLAGS = -D E1000_DEBUG=TX -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
+
+#CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
+
 #CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fvar-tracking -fvar-tracking-assignments -O0 -g -Wall -MD -gdwarf-2 -m32 -Werror -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
@@ -182,6 +191,8 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
+	_checknic\
+	_arptest\
 	_cat\
 	_echo\
 	_forktest\
@@ -231,6 +242,8 @@ UPROGS=\
 	_jerry\
 	_timetest\
 	_stdtests\
+	_icmptest\
+
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua
 
@@ -275,8 +288,17 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 2
 endif
-QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
+##############################################################################################################
+# The following line is deleted by Renjie Li, but exists in 6ziban version --noted by Tang Jianyu 2019.11.17 #
+# So please be careful when merging the file since I don't know the effect of this line                      #
+##############################################################################################################
+#QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $#(QEMUEXTRA)
+
+NIC=e1000 #i82559er
+PORT=26003
+QEMUEXTRA += -redir tcp:$(PORT)::7 -redir udp:$(PORT)::7 -net dump,file=qemu.pcap
+QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 -net user -net nic,model=$(NIC) $(QEMUEXTRA)
 qemu: fs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 

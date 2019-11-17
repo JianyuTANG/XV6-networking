@@ -5,6 +5,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "pci.h"
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -36,6 +37,8 @@ main(void)
 
   initshm();
   swaptableinit();
+  pci_init();      // 增加了pci初始化
+
   userinit();      // first user process
   mpmain();        // finish this processor's setup
 }

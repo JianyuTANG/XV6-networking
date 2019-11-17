@@ -119,6 +119,11 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+
+extern int sys_arp(void);
+extern int sys_checknic(void);
+extern int sys_icmptest(void);
+
 extern int sys_reparent(void);
 extern int sys_getstate(void);
 extern int sys_suspend(void);
@@ -148,6 +153,8 @@ extern int sys_isatty(void);
 extern int sys_lseek(void);
 
 
+
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -170,6 +177,11 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+
+[SYS_arp]     sys_arp,
+[SYS_checknic] sys_checknic,
+[SYS_icmptest] sys_icmptest,
+
 [SYS_reparent] sys_reparent,
 [SYS_getstate] sys_getstate,
 [SYS_suspend] sys_suspend,
@@ -195,6 +207,8 @@ static int (*syscalls[])(void) = {
 [SYS_lseek]   sys_lseek,
 [SYS_getsharedpages] sys_getsharedpages,
 [SYS_showproc] sys_showproc
+
+
 };
 
 void

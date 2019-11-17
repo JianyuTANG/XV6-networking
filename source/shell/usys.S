@@ -29,6 +29,11 @@ SYSCALL(getpid)
 SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
+
+SYSCALL(arp)
+SYSCALL(checknic)
+SYSCALL(icmptest)
+
 SYSCALL(reparent)
 SYSCALL(getstate)
 SYSCALL(suspend)
