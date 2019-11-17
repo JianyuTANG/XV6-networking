@@ -86,7 +86,9 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 INCLDIR = ./include
-CFLAGS = -D E1000_DEBUG=TX -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
+
+CFLAGS = -D E1000_DEBUG=TX -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
+#CFLAGS = -D E1000_DEBUG=TX -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
 
 #CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -fno-omit-frame-pointer -nostdinc -I$(INCLDIR)
 
