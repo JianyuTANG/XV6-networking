@@ -21,9 +21,9 @@
 #define SYS_mkdir     20
 #define SYS_close     21
 
-#define SYS_arp    22
-#define SYS_checknic 23
-#define SYS_icmptest 24
+#define SYS_arp       22
+#define SYS_checknic  53
+#define SYS_icmptest  54
 
 #define SYS_nfpgs     32
 #define SYS_writeshm  33
