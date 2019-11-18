@@ -20,6 +20,11 @@
 #define SYS_link      19
 #define SYS_mkdir     20
 #define SYS_close     21
+
+#define SYS_arp       22
+#define SYS_checknic  53
+#define SYS_icmptest  54
+
 #define SYS_nfpgs     32
 #define SYS_writeshm  33
 #define SYS_readshm   34

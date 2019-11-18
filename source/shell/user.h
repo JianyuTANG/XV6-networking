@@ -1,6 +1,8 @@
 #ifndef USER_H
 #define USER_H
 
+#include "util.h"
+
 struct stat;
 struct rtcdate;
 
@@ -26,6 +28,11 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+
+int arp(char*, char*, char*, int);
+int checknic(int,int);
+int icmptest(int,int);
+
 int reparent(int,int);
 void jobs (void);
 int getstate(int);
