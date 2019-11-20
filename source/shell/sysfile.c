@@ -18,7 +18,6 @@
 #include "fcntl.h"
 #include "x86.h"
 #include "memlayout.h"
-#include "x86.h"
 #include "date.h"
 
 #include "history.h"
@@ -205,8 +204,7 @@ bad:
 }
 
 // Is the directory dp empty except for "." and ".." ?
-static int
-isdirempty(struct inode *dp)
+int isdirempty(struct inode *dp)
 {
   int off;
   struct dirent de;
@@ -288,7 +286,7 @@ int sys_unlink(void)
   return kunlink(path);
 }
 
-static struct inode *
+struct inode *
 create(char *path, short type, short major, short minor)
 {
   uint off;
