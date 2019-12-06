@@ -599,6 +599,7 @@ int sys_getcwd(void)
   safestrcpy(cwd, myproc()->cwdname, sizeof(myproc()->cwdname));
   return 0;
 }
+
 uint16_t calc_checksum(uint16_t *buffer, int size)
 {
   unsigned long cksum = 0;
@@ -607,10 +608,10 @@ uint16_t calc_checksum(uint16_t *buffer, int size)
     cksum += *buffer++;
     --size;
   }
-  //    if(size)
-  //    {
-  //        cksum += *(UCHAR*)buffer;
-  //    }
+    //  if(size)
+    //  {
+    //      cksum += *(UCHAR*)buffer;
+    //  }
   cksum = (cksum >> 16) + (cksum & 0xffff);
   cksum += (cksum >> 16);
   return (uint16_t)(~cksum);
@@ -722,6 +723,47 @@ int send_icmpRequest(char *interface, char *tarips, uint8_t type, uint8_t code)
   nd->send_packet(nd->driver, (uint8_t *)buffer, pos); //sizeof(eth)-2 to remove padding. padding was necessary for alignment.
 
   return 0;
+}
+
+int make_udp_pkt(uint8_t* buffer, uint16_t source_port, uint16_t target_port, char* data, uint16_t len)
+{
+  // udp header
+  uint8_t pos = 0;
+  pos = fillbuf(buffer, pos, source_port, 2);
+  pos = fillbuf(buffer, pos, target_port, 2);
+  pos = fillbuf(buffer, pos, len, 2);
+  uint16_t udp_checksum = 0;
+  udp_checksum = calc_checksum((uint16_t*)buffer, (int)len);
+  pos = fillbuf(buffer, pos, udp_checksum, 2);
+
+  // udp data
+  // 受制于内存分配的方式(kalloc)，对udp包的大小有限制
+  if (len > 4080)
+  {
+    cprintf("ERROR: data is too long");
+    return -1;
+  }
+  for (uint16_t i = 0; i < len; i++)
+  {
+    buffer[pos] = data[i];
+    pos++;
+  }
+
+  return 1;
+}
+
+int make_ip_pkt()
+{
+  //ip header
+  uint16_t vrs = 4;
+  uint16_t IHL = 5;
+  uint16_t TOS = 0;
+  uint16_t TOL = 28;
+  uint16_t ID = id++;
+  uint16_t flag = 0;
+  uint16_t offset = 0;
+  uint16_t TTL = 32;
+  uint16_t protocal = 1;
 }
 
 int sys_icmptest(void)
