@@ -1047,3 +1047,21 @@ int sys_lseek(void)
   f->off = (uint)newoff;
   return newoff;
 }
+
+int sys_ifconfig(void)
+{
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:sys_ifconfig:Device not loaded\n");
+    return -1;
+  }
+  struct e1000 *e1000 = (struct e1000 *)(nd->driver);
+  char mac_str[18];
+  unpack_mac(e1000->mac_addr, mac_str);
+  cprintf("%d\n", e1000->mac_addr);
+  cprintf("mynet0 Link encap:Ethernet  HWaddr %s\n", mac_str);
+  cprintf("inet addr:%s  Bcast:%s  Mask:%s\n", "183.173.62.228", "183.173.63.255", "255.255.248.0");
+  cprintf("UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1\n");
+  return 0;
+}

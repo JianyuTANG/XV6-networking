@@ -123,6 +123,7 @@ extern int sys_uptime(void);
 extern int sys_arp(void);
 extern int sys_checknic(void);
 extern int sys_icmptest(void);
+extern int sys_ifconfig(void);
 
 extern int sys_reparent(void);
 extern int sys_getstate(void);
@@ -181,6 +182,7 @@ static int (*syscalls[])(void) = {
 [SYS_arp]     sys_arp,
 [SYS_checknic] sys_checknic,
 [SYS_icmptest] sys_icmptest,
+[SYS_ifconfig] sys_ifconfig,
 
 [SYS_reparent] sys_reparent,
 [SYS_getstate] sys_getstate,
