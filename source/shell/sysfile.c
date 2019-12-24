@@ -646,6 +646,20 @@ static uint8_t fillbuf(uint8_t *buf, uint8_t k, uint64_t num, uint8_t len)
   return k;
 }
 
+int send_arpRequest(char* interface, char* ipAddr, char* arpResp) {
+  cprintf("Create arp request for ip:%s over Interface:%s\n", ipAddr, interface);
+  struct nic_device *nd;
+  if(get_device(interface, &nd) < 0) {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return -1;
+  }
+
+  struct ethr_hdr eth;
+  create_eth_arp_frame(nd->mac_addr, ipAddr, &eth);
+  nd->send_packet(nd->driver, (uint8_t*)&eth, sizeof(eth)-2); //sizeof(eth)-2 to remove padding. padding was necessary for alignment.
+    return 0;
+}
+
 int send_icmpRequest(char *interface, char *tarips, uint8_t type, uint8_t code)
 {
   static uint16_t id = 1;
@@ -720,6 +734,48 @@ int send_icmpRequest(char *interface, char *tarips, uint8_t type, uint8_t code)
     return -1;
   }
   nd->send_packet(nd->driver, (uint8_t *)buffer, pos); //sizeof(eth)-2 to remove padding. padding was necessary for alignment.
+
+  return 0;
+}
+
+int send_ipDatagram(char* str_tarip)
+{
+  static uint16_t id = 1;
+
+  uint8_t *buffer = (uint8_t *)kalloc();
+  uint8_t posiphdrcks;
+  uint8_t posicmphdrcks;
+  uint8_t pos = 0;
+
+  //ip header
+  uint16_t vrs = 4;
+  uint16_t IHL = 5;
+  uint16_t TOS = 0;
+  uint16_t TOL = 28;
+  uint16_t ID = id++;
+  uint16_t flag = 0;
+  uint16_t offset = 0;
+  uint16_t TTL = 32;
+  uint16_t protocal = 1; //ICMP
+
+  uint8_t *piphdr = &buffer[pos];
+  pos = fillbuf(buffer, pos, (vrs << 4) + IHL, 1);
+  pos = fillbuf(buffer, pos, TOS, 1);
+  pos = fillbuf(buffer, pos, TOL, 2);
+  pos = fillbuf(buffer, pos, ID, 2);
+  pos = fillbuf(buffer, pos, (flag << 13) + offset, 2);
+  pos = fillbuf(buffer, pos, TTL, 1);
+  pos = fillbuf(buffer, pos, protocal, 1);
+
+  uint16_t cksum = 0; //calc_checksum((uint16_t*)piphdr,5);
+
+  uint32_t srcip = getIP("10.0.2.15");
+
+  uint32_t tarip = getIP(str_tarip);
+  posiphdrcks = pos;
+  pos = fillbuf(buffer, pos, cksum, 2);
+  pos = fillbuf(buffer, pos, srcip, 4);
+  pos = fillbuf(buffer, pos, tarip, 4);
 
   return 0;
 }
@@ -1050,6 +1106,13 @@ int sys_lseek(void)
 
 int sys_ifconfig(void)
 {
+  char *cmd, *ip;
+  if (argstr(0, &cmd) < 0 || argstr(1, &ip) < 0)
+  {
+    cprintf("ERROR:sys_ifconfig:Failed to fetch arguments");
+    return -1;
+  }
+
   struct nic_device *nd;
   if (get_device("mynet0", &nd) < 0)
   {
@@ -1059,7 +1122,9 @@ int sys_ifconfig(void)
   struct e1000 *e1000 = (struct e1000 *)(nd->driver);
   char mac_str[18];
   unpack_mac(e1000->mac_addr, mac_str);
-  cprintf("%d\n", e1000->mac_addr);
+  cprintf("cmd:%s\n\n", cmd);
+  cprintf("ip:%s\n\n", ip);
+  cprintf("%d\n\n", e1000->mac_addr);
   cprintf("mynet0 Link encap:Ethernet  HWaddr %s\n", mac_str);
   cprintf("inet addr:%s  Bcast:%s  Mask:%s\n", "183.173.62.228", "183.173.63.255", "255.255.248.0");
   cprintf("UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1\n");

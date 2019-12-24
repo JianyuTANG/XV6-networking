@@ -18,13 +18,21 @@ uint8 fillbuf(uint8* buf, uint8 k, uint64 num, uint8 len)
 	return k;
 }
 
+# define MAC_ADDRESS 0x563412005452l
+
 static int e1000_attach(struct pci_func *pcif) {
 	pci_func_enable(pcif);
 	struct nic_device nd;
 
-	fillbuf(nd.mac_addr,0,0x563412005452l,6);
+	// fillbuf(nd.mac_addr, 0, MAC_ADDRESS, 6);
 
-	e1000_init(pcif, &nd.driver, nd.mac_addr);
+	cprintf("old:%d\n", *(uint32_t *)nd.mac_addr);
+
+	e1000_init(pcif, &nd);
+
+	cprintf("new:%d\n", *(uint32_t *)nd.mac_addr);
+
+	//, nd.mac_addr);
 	nd.send_packet = e1000_send;
 	nd.recv_packet = e1000_recv;
 	register_device(nd);

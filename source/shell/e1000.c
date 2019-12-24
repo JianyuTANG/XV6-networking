@@ -60,8 +60,10 @@ void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
   cprintf("after while loop\n");
 }
 
-int e1000_init(struct pci_func *pcif, void **driver, uint8_t *mac_addr)
+int e1000_init(struct pci_func *pcif, void *nd)
+//, uint8_t *mac_addr)
 {
+  struct nic_device* nd_p = (struct nic_device*)nd;
   struct e1000 *the_e1000 = (struct e1000 *)kalloc();
 
   for (int i = 0; i < 6; i++)
@@ -119,8 +121,10 @@ int e1000_init(struct pci_func *pcif, void **driver, uint8_t *mac_addr)
   uint32_t macaddr_h = e1000_reg_read(E1000_RCV_RAH0, the_e1000);
   *(uint32_t *)the_e1000->mac_addr = macaddr_l;
   *(uint16_t *)(&the_e1000->mac_addr[4]) = (uint16_t)macaddr_h;
-  *(uint32_t *)mac_addr = macaddr_l;
-  *(uint32_t *)(&mac_addr[4]) = (uint16_t)macaddr_h;
+
+  *(uint32_t *)nd_p->mac_addr = macaddr_l;
+  *(uint16_t *)(nd_p->mac_addr+4) = (uint16_t)macaddr_h;
+
   char mac_str[18];
   unpack_mac(the_e1000->mac_addr, mac_str);
   mac_str[17] = 0;
@@ -268,7 +272,8 @@ int e1000_init(struct pci_func *pcif, void **driver, uint8_t *mac_addr)
   ioapicenable(the_e1000->irq_line, 0);
   ioapicenable(the_e1000->irq_line, 1);
 
-  *driver = the_e1000;
+  nd_p->driver = the_e1000;
+  // driver = the_e1000;
   return 0;
 }
 
