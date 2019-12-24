@@ -1,9 +1,9 @@
 #include "e1000.h"
 #include "x86.h"
 
-typedef struct Sockaddr{
+typedef struct Sock_addr{
     char *ip_addr;
-    int port;
+    uint16_t port;
 }sock_addr;
 
 

@@ -52,6 +52,7 @@ int make_udp_pkt(uint8_t* buffer, uint16_t source_port, uint16_t target_port, ch
 {
   // udp header
   uint8_t pos = 0;
+
   pos = fillbuf(buffer, pos, source_port, 2);
   pos = fillbuf(buffer, pos, target_port, 2);
   pos = fillbuf(buffer, pos, len + 8, 2);
@@ -76,7 +77,7 @@ int make_udp_pkt(uint8_t* buffer, uint16_t source_port, uint16_t target_port, ch
     pos++;
   }
 
-  return 1;
+  return 0;
 }
 
 int make_ip_pkt(uint8_t* buffer, char* target_ip, char* data, uint16_t len)
