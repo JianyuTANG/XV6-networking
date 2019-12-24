@@ -117,15 +117,24 @@ int e1000_init(struct pci_func *pcif, void *nd)
   //   the_e1000);
 
   //Read Hardware(MAC) address from the device
+
+  // set IP, MAC address
   uint32_t macaddr_l = e1000_reg_read(E1000_RCV_RAL0, the_e1000);
   uint32_t macaddr_h = e1000_reg_read(E1000_RCV_RAH0, the_e1000);
+
   *(uint32_t *)the_e1000->mac_addr = macaddr_l;
   *(uint16_t *)(&the_e1000->mac_addr[4]) = (uint16_t)macaddr_h;
+
+  fillbuf(the_e1000->gateway_mac_addr, 0, 0x52550a000202l, 6);
+
+  char mac_str[18];
+  // unpack_mac(the_e1000->gateway_mac_addr, mac_str);
+  // mac_str[17] = 0;
+  // cprintf("gateway MAC address of the e1000 device:%s\n", mac_str);
 
   *(uint32_t *)nd_p->mac_addr = macaddr_l;
   *(uint16_t *)(nd_p->mac_addr+4) = (uint16_t)macaddr_h;
 
-  char mac_str[18];
   unpack_mac(the_e1000->mac_addr, mac_str);
   mac_str[17] = 0;
 
