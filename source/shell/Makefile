@@ -245,6 +245,7 @@ UPROGS=\
 	_timetest\
 	_stdtests\
 	_icmptest\
+	_ping\
 
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua

@@ -32,6 +32,7 @@ int uptime(void);
 int arp(char*, char*, char*, int);
 int checknic(int,int);
 int icmptest(int,int);
+int ping(char*);
 
 int reparent(int,int);
 void jobs (void);

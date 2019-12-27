@@ -1047,3 +1047,15 @@ int sys_lseek(void)
   f->off = (uint)newoff;
   return newoff;
 }
+
+int sys_ping(char* dest_)
+{
+  char *_dest;
+  if (argstr(0, &_dest) < 0)
+  {
+    cprintf("ERROR:sys_ping:Failed to fetch arguments");
+    return -1;
+  }
+  cprintf(_dest);
+  return 0;
+}
