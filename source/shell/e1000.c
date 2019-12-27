@@ -4,6 +4,8 @@
 #include "arp_frame.h"
 #include "nic.h"
 #include "memlayout.h"
+#include "network_stack.h"
+
 
  static void e1000_reg_write(uint32_t reg_addr, uint32_t value, struct e1000 *the_e1000) {
    *(uint32_t*)(the_e1000->membase + (reg_addr)) = value;
