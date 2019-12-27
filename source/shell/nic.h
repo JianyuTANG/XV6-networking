@@ -7,7 +7,7 @@
  */
 
 #include "types.h"
-#include "arp_frame.h"
+#include "network.h"
 
 //Generic NIC device driver container
 struct nic_device {

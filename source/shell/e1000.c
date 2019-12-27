@@ -1,7 +1,7 @@
 #include "e1000.h"
 #include "defs.h"
 #include "x86.h"
-#include "arp_frame.h"
+#include "network.h"
 #include "nic.h"
 #include "memlayout.h"
 

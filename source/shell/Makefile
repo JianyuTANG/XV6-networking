@@ -31,12 +31,13 @@ OBJS = \
 	sysconsole.o\
 	vm.o\
 	arp.o\
-	arp_frame.o\
 	network.o\
 	pci.o\
 	nic.o\
 	e1000.o\
 	util.o\
+
+# arp_frame.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
