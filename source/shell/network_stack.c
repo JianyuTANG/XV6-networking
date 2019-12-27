@@ -10,6 +10,7 @@
 #include "proc.h"
 #include "network_stack.h"
 #include "defs.h"
+#include "nic.h"
 
 static uint32_t local_ip = MAKE_IP_ADDR(10, 0, 2, 15); // qemu's idea of the guest IP
 static uint8_t local_mac[ETHADDR_LEN] = { 0x52, 0x54, 0x00, 0x12, 0x34, 0x56 };
@@ -172,9 +173,18 @@ net_tx_eth(struct mbuf *m, uint16_t ethtype)
   // to broadcast instead.
   memmove(ethhdr->dhost, broadcast_mac, ETHADDR_LEN);
   ethhdr->type = htons(ethtype);
-  if (e1000_transmit(m)) {
-    mbuffree(m);
+
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return -1;
   }
+  nd->send_packet(nd->driver, (uint8_t *)m->head, m->len);
+
+  // if (e1000_transmit(m)) {
+  //   mbuffree(m);
+  // }
 }
 
 // sends an IP packet
