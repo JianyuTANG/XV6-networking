@@ -9,7 +9,6 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
-#include "network_stack.h"
 
 
 struct devsw devsw[NDEV];
