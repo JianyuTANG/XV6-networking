@@ -168,19 +168,21 @@ filewrite(struct file *f, char *addr, int n)
   }
   if(f->type == FD_SOCK)
   {
+    // struct sock *s = f->sock;
+    // struct mbuf *m;
+    // m = mbufalloc(MBUF_DEFAULT_HEADROOM);
+    // char *startpos = (char *)m->head;
+    // for(int i = 0; i < n; i++)
+    // {
+    //   startpos[i] = addr[i];
+    // }
+    // mbufput(m, n);
+    // uint32_t destination_ip = f->sock->raddr;
+    // uint16_t destination_port = f->sock->rport;
+    // uint16_t source_port = f->sock->lport;
+    // net_tx_udp(m, destination_ip, source_port, destination_port);
     struct sock *s = f->sock;
-    struct mbuf *m;
-    m = mbufalloc(MBUF_DEFAULT_HEADROOM);
-    char *startpos = (char *)m->head;
-    for(int i = 0; i < n; i++)
-    {
-      startpos[i] = addr[i];
-    }
-    mbufput(m, n);
-    uint32_t destination_ip = f->sock->raddr;
-    uint16_t destination_port = f->sock->rport;
-    uint16_t source_port = f->sock->lport;
-    net_tx_udp(m, destination_ip, source_port, destination_port);
+    socksendudp(s, n, addr);
   }
   panic("filewrite");
 }

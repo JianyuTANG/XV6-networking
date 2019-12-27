@@ -46,6 +46,16 @@ int             fileread(struct file*, char*, int n);
 int             filestat(struct file*, struct stat*);
 int             filewrite(struct file*, char*, int n);
 
+// network_stack.c
+void            net_rx(struct mbuf*);
+void            net_tx_udp(struct mbuf*, uint32_t, uint16_t, uint16_t);
+
+// sysnet.c
+void            sockinit(void);
+int             sockalloc(struct file **, uint32_t, uint16_t, uint16_t);
+void            sockrecvudp(struct mbuf*, uint32_t, uint16_t, uint16_t);
+void            socksendudp(struct sock *, int, char *);
+
 // fs.c
 void            readsb(int dev, struct superblock *sb);
 int             dirlink(struct inode*, char*, uint);

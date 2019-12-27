@@ -80,6 +80,21 @@ bad:
   return -1;
 }
 
+void socksendudp(struct sock *s, int n, char *addr)
+{
+  struct mbuf *m;
+  m = mbufalloc(MBUF_DEFAULT_HEADROOM);
+  char *startpos = (char *)m->head;
+  for(int i = 0; i < n; i++)
+  {
+    startpos[i] = addr[i];
+  }
+  mbufput(m, n);
+  uint32_t destination_ip = s->raddr;
+  uint16_t destination_port = s->rport;
+  uint16_t source_port = s->lport;
+  net_tx_udp(m, destination_ip, source_port, destination_port);
+}
 
 // called by protocol handler layer to deliver UDP packets
 void
