@@ -9,6 +9,7 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "network_stack.h"
 
 struct sock {
   struct sock *next; // the next socket in the list
