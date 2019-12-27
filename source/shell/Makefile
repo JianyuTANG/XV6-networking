@@ -36,8 +36,9 @@ OBJS = \
 	nic.o\
 	e1000.o\
 	util.o\
-	sysnet.o\
 	network_stack.o\
+	sysnet.o\
+	
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf

@@ -7,10 +7,10 @@
 #include "memlayout.h"
 #include "x86.h"
 #include "spinlock.h"
-#include "proc.h"
 #include "network_stack.h"
 #include "defs.h"
 #include "nic.h"
+
 
 static uint32_t local_ip = MAKE_IP_ADDR(10, 0, 2, 15); // qemu's idea of the guest IP
 static uint8_t local_mac[ETHADDR_LEN] = { 0x52, 0x54, 0x00, 0x12, 0x34, 0x56 };
