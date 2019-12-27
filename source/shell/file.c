@@ -78,6 +78,9 @@ fileclose(struct file *f)
     iput(ff.ip);
     end_op();
   }
+  else if(ff.type == FD_SOCK){
+    sockclose(f);
+  }
 }
 
 // Get metadata about file f.
@@ -159,21 +162,12 @@ filewrite(struct file *f, char *addr, int n)
   }
   if(f->type == FD_SOCK)
   {
-    // struct sock *s = f->sock;
-    // struct mbuf *m;
-    // m = mbufalloc(MBUF_DEFAULT_HEADROOM);
-    // char *startpos = (char *)m->head;
-    // for(int i = 0; i < n; i++)
-    // {
-    //   startpos[i] = addr[i];
-    // }
-    // mbufput(m, n);
-    // uint32_t destination_ip = f->sock->raddr;
-    // uint16_t destination_port = f->sock->rport;
-    // uint16_t source_port = f->sock->lport;
-    // net_tx_udp(m, destination_ip, source_port, destination_port);
     socksendudp(f, n, addr);
+    cprintf("finish wirte!");
+    return 1;
   }
+  
   panic("filewrite");
+  cprintf("finish wirte!");
 }
 

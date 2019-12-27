@@ -78,6 +78,7 @@ void            sockinit(void);
 int             sockalloc(struct file **, uint32_t, uint16_t, uint16_t);
 void            sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport);
 void            socksendudp(struct file *, int , char *);
+void            sockclose(struct file *f);
 
 // ide.c
 void            ideinit(void);

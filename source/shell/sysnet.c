@@ -7,7 +7,6 @@
 #include "memlayout.h"
 #include "x86.h"
 #include "spinlock.h"
-#include "proc.h"
 #include "network_stack.h"
 #include "defs.h"
 #include "fs.h"
@@ -62,7 +61,7 @@ sockalloc(struct file **f, uint32_t raddr, uint16_t lport, uint16_t rport)
   while (pos) {
     if (pos->raddr == raddr &&
         pos->lport == lport &&
-	pos->rport == rport) {
+	      pos->rport == rport) {
       release(&lock);
       goto bad;
     }
@@ -96,6 +95,35 @@ void socksendudp(struct file *f, int n, char *addr)
   uint16_t destination_port = s->rport;
   uint16_t source_port = s->lport;
   net_tx_udp(m, destination_ip, source_port, destination_port);
+}
+
+void sockclose(struct file *f)
+{
+  acquire(&lock);
+  struct sock *s = f->sock;
+  // delete s from linked list
+  struct sock *pos = sockets;
+  if(pos == s)
+  {
+    sockets = s->next;
+  }
+  else
+  {
+    while(pos)
+    {
+      struct sock *temp = pos->next;
+      if(temp == s)
+      {
+        break;
+      }
+      pos = temp;
+    }
+    pos->next = s->next;
+  }
+  release(&lock);
+  kfree((char *)s);
+  f->sock = 0;
+  return 0;
 }
 
 // called by protocol handler layer to deliver UDP packets
