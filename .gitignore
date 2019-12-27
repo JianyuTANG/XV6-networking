@@ -1,2 +1,3 @@
-
+.vscode\*
 source/shell/qemu.pcap
+source/shell/.vscode/settings.json
