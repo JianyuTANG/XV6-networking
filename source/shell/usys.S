@@ -33,6 +33,7 @@ SYSCALL(uptime)
 SYSCALL(arp)
 SYSCALL(checknic)
 SYSCALL(icmptest)
+SYSCALL(connect)
 
 SYSCALL(reparent)
 SYSCALL(getstate)

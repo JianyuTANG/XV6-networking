@@ -32,7 +32,7 @@ int uptime(void);
 int arp(char*, char*, char*, int);
 int checknic(int,int);
 int icmptest(int,int);
-int connect(uint32, uint16, uint16);
+int connect(uint32_t, uint16_t, uint16_t);
 
 int reparent(int,int);
 void jobs (void);

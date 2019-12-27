@@ -8,11 +8,12 @@
 #include "x86.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "network_stack.h"
 #include "defs.h"
 #include "fs.h"
 #include "sleeplock.h"
 #include "file.h"
-#include "network_stack.h"
+
 
 struct sock {
   struct sock *next; // the next socket in the list
@@ -98,8 +99,7 @@ void socksendudp(struct file *f, int n, char *addr)
 }
 
 // called by protocol handler layer to deliver UDP packets
-void
-sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport)
+void sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport)
 {
   //
   // Your code here.
