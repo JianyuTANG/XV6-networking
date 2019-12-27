@@ -32,6 +32,7 @@ OBJS = \
 	vm.o\
 	arp.o\
 	arp_frame.o\
+	network.o\
 	pci.o\
 	nic.o\
 	e1000.o\

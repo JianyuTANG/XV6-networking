@@ -41,7 +41,7 @@ void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
   cprintf("\n");
 
   struct e1000 *e1000 = (struct e1000 *)driver;
-  cprintf("e1000 driver: Sending packet of length:0x%x %x starting at physical address:0x%x\n", length, sizeof(struct ethr_hdr), V2P(e1000->tx_buf[e1000->tbd_tail]));
+  // cprintf("e1000 driver: Sending packet of length:0x%x %x starting at physical address:0x%x\n", length, sizeof(struct ethr_hdr), V2P(e1000->tx_buf[e1000->tbd_tail]));
   memset(e1000->tbd[e1000->tbd_tail], 0, sizeof(struct e1000_tbd));
   memmove((e1000->tx_buf[e1000->tbd_tail]), pkt, length);
   e1000->tbd[e1000->tbd_tail]->addr = (uint64_t)(uint32_t)V2P(e1000->tx_buf[e1000->tbd_tail]);

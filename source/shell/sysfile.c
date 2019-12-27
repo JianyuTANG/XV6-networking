@@ -23,6 +23,7 @@
 #include "history.h"
 #include "var_in_kernel.h"
 #include "syscall.h"
+#include "network.h"
 
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort *)P2V(0xb8000); // CGA memory
@@ -599,186 +600,6 @@ int sys_getcwd(void)
   safestrcpy(cwd, myproc()->cwdname, sizeof(myproc()->cwdname));
   return 0;
 }
-uint16_t calc_checksum(uint16_t *buffer, int size)
-{
-  unsigned long cksum = 0;
-  while (size > 1)
-  {
-    cksum += *buffer++;
-    --size;
-  }
-  //    if(size)
-  //    {
-  //        cksum += *(UCHAR*)buffer;
-  //    }
-  cksum = (cksum >> 16) + (cksum & 0xffff);
-  cksum += (cksum >> 16);
-  return (uint16_t)(~cksum);
-}
-
-uint32_t getIP(char *sIP)
-{
-  int i = 0;
-  uint32_t v1 = 0, v2 = 0, v3 = 0, v4 = 0;
-  cprintf(sIP);
-  cprintf("\n");
-  cprintf("%d\n", sIP[9]);
-  for (i = 0; sIP[i] != '\0'; ++i)
-    ;
-  for (i = 0; sIP[i] != '.'; ++i)
-    v1 = v1 * 10 + sIP[i] - '0';
-  for (++i; sIP[i] != '.'; ++i)
-    v2 = v2 * 10 + sIP[i] - '0';
-  for (++i; sIP[i] != '.'; ++i)
-    v3 = v3 * 10 + sIP[i] - '0';
-  for (++i; sIP[i] != '\0'; ++i)
-    v4 = v4 * 10 + sIP[i] - '0';
-  return (v1 << 24) + (v2 << 16) + (v3 << 8) + v4;
-}
-
-static uint8_t fillbuf(uint8_t *buf, uint8_t k, uint64_t num, uint8_t len)
-{
-  static uint8_t mask = -1;
-  for (short j = len - 1; j >= 0; --j)
-  {
-    buf[k++] = (num >> (j << 3)) & mask;
-  }
-  return k;
-}
-
-int send_arpRequest(char* interface, char* ipAddr, char* arpResp) {
-  cprintf("Create arp request for ip:%s over Interface:%s\n", ipAddr, interface);
-  struct nic_device *nd;
-  if(get_device(interface, &nd) < 0) {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
-    return -1;
-  }
-
-  struct ethr_hdr eth;
-  create_eth_arp_frame(nd->mac_addr, ipAddr, &eth);
-  nd->send_packet(nd->driver, (uint8_t*)&eth, sizeof(eth)-2); //sizeof(eth)-2 to remove padding. padding was necessary for alignment.
-    return 0;
-}
-
-int send_icmpRequest(char *interface, char *tarips, uint8_t type, uint8_t code)
-{
-  static uint16_t id = 1;
-
-  uint8_t *buffer = (uint8_t *)kalloc();
-  uint8_t posiphdrcks;
-  uint8_t posicmphdrcks;
-  uint8_t pos = 0;
-  //mac header
-  uint64_t tarmac = 0x52550a000202l;
-  uint64_t srcmac = 0x525400123456l;
-  uint16_t macprotocal = 0x0800;
-
-  pos = fillbuf(buffer, pos, tarmac, 6);
-  pos = fillbuf(buffer, pos, srcmac, 6);
-  pos = fillbuf(buffer, pos, macprotocal, 2);
-
-  //ip header
-  uint16_t vrs = 4;
-  uint16_t IHL = 5;
-  uint16_t TOS = 0;
-  uint16_t TOL = 28;
-  uint16_t ID = id++;
-  uint16_t flag = 0;
-  uint16_t offset = 0;
-  uint16_t TTL = 32;
-  uint16_t protocal = 1; //ICMP
-
-  uint8_t *piphdr = &buffer[pos];
-  pos = fillbuf(buffer, pos, (vrs << 4) + IHL, 1);
-  pos = fillbuf(buffer, pos, TOS, 1);
-  pos = fillbuf(buffer, pos, TOL, 2);
-  pos = fillbuf(buffer, pos, ID, 2);
-  pos = fillbuf(buffer, pos, (flag << 13) + offset, 2);
-  pos = fillbuf(buffer, pos, TTL, 1);
-  pos = fillbuf(buffer, pos, protocal, 1);
-
-  uint16_t cksum = 0; //calc_checksum((uint16_t*)piphdr,5);
-
-  uint32_t srcip = getIP("10.0.2.15");
-
-  uint32_t tarip = getIP(tarips);
-  posiphdrcks = pos;
-  pos = fillbuf(buffer, pos, cksum, 2);
-  pos = fillbuf(buffer, pos, srcip, 4);
-  pos = fillbuf(buffer, pos, tarip, 4);
-
-  uint8_t *picmphdr = &buffer[pos];
-  //icmp header
-  uint16_t icmptype = type;
-  uint16_t icmpcode = code;
-  pos = fillbuf(buffer, pos, icmptype, 1);
-  pos = fillbuf(buffer, pos, icmpcode, 1);
-  uint16_t icmpcksum = 0; //calc_checksum((uint16_t*)picmphdr,1);
-  uint16_t icmpflag = 1108;
-  uint16_t icmpseq = 921;
-  posicmphdrcks = pos;
-  pos = fillbuf(buffer, pos, icmpcksum, 2);
-  pos = fillbuf(buffer, pos, icmpflag, 2);
-  pos = fillbuf(buffer, pos, icmpseq, 2);
-
-  cksum = calc_checksum((uint16_t *)piphdr, 10);
-  icmpcksum = calc_checksum((uint16_t *)picmphdr, 4);
-
-  fillbuf(buffer, posiphdrcks, cksum, 2);
-  fillbuf(buffer, posicmphdrcks, icmpcksum, 2);
-
-  struct nic_device *nd;
-  if (get_device(interface, &nd) < 0)
-  {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
-    return -1;
-  }
-  nd->send_packet(nd->driver, (uint8_t *)buffer, pos); //sizeof(eth)-2 to remove padding. padding was necessary for alignment.
-
-  return 0;
-}
-
-int send_ipDatagram(char* str_tarip)
-{
-  static uint16_t id = 1;
-
-  uint8_t *buffer = (uint8_t *)kalloc();
-  uint8_t posiphdrcks;
-  uint8_t posicmphdrcks;
-  uint8_t pos = 0;
-
-  //ip header
-  uint16_t vrs = 4;
-  uint16_t IHL = 5;
-  uint16_t TOS = 0;
-  uint16_t TOL = 28;
-  uint16_t ID = id++;
-  uint16_t flag = 0;
-  uint16_t offset = 0;
-  uint16_t TTL = 32;
-  uint16_t protocal = 1; //ICMP
-
-  uint8_t *piphdr = &buffer[pos];
-  pos = fillbuf(buffer, pos, (vrs << 4) + IHL, 1);
-  pos = fillbuf(buffer, pos, TOS, 1);
-  pos = fillbuf(buffer, pos, TOL, 2);
-  pos = fillbuf(buffer, pos, ID, 2);
-  pos = fillbuf(buffer, pos, (flag << 13) + offset, 2);
-  pos = fillbuf(buffer, pos, TTL, 1);
-  pos = fillbuf(buffer, pos, protocal, 1);
-
-  uint16_t cksum = 0; //calc_checksum((uint16_t*)piphdr,5);
-
-  uint32_t srcip = getIP("10.0.2.15");
-
-  uint32_t tarip = getIP(str_tarip);
-  posiphdrcks = pos;
-  pos = fillbuf(buffer, pos, cksum, 2);
-  pos = fillbuf(buffer, pos, srcip, 4);
-  pos = fillbuf(buffer, pos, tarip, 4);
-
-  return 0;
-}
 
 int sys_icmptest(void)
 {
@@ -875,18 +696,19 @@ bad:
 
 int sys_arp(void)
 {
-  char *ipAddr, *interface, *arpResp;
+  char *ipAddr, *arpResp;
   int size;
 
-  if (argstr(0, &interface) < 0 || argstr(1, &ipAddr) < 0 || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+  if (argstr(0, &ipAddr) < 0)// || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
   {
     cprintf("ERROR:sys_createARP:Failed to fetch arguments");
     return -1;
   }
 
-  if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+  // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+  if (send_arpRequest(ipAddr) < 0)
   {
-    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", ipAddr);
+    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
     return -1;
   }
 

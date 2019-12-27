@@ -29,7 +29,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
-int arp(char*, char*, char*, int);
+int arp(char*);
 int checknic(int,int);
 int icmptest(int,int);
 int ifconfig(char* cmd, char* val);
