@@ -11,14 +11,6 @@
 #include "file.h"
 #include "network_stack.h"
 
-struct sock {
-  struct sock *next; // the next socket in the list
-  uint32_t raddr;      // the remote IPv4 address
-  uint16_t lport;      // the local UDP port number
-  uint16_t rport;      // the remote UDP port number
-  struct spinlock lock; // protects the rxq
-  struct mbufq rxq;  // a queue of packets waiting to be received
-};
 
 struct devsw devsw[NDEV];
 struct {
@@ -181,8 +173,7 @@ filewrite(struct file *f, char *addr, int n)
     // uint16_t destination_port = f->sock->rport;
     // uint16_t source_port = f->sock->lport;
     // net_tx_udp(m, destination_ip, source_port, destination_port);
-    struct sock *s = f->sock;
-    socksendudp(s, n, addr);
+    socksendudp(f, n, addr);
   }
   panic("filewrite");
 }

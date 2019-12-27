@@ -80,8 +80,9 @@ bad:
   return -1;
 }
 
-void socksendudp(struct sock *s, int n, char *addr)
+void socksendudp(struct file *f, int n, char *addr)
 {
+  struct sock *s = f->sock;
   struct mbuf *m;
   m = mbufalloc(MBUF_DEFAULT_HEADROOM);
   char *startpos = (char *)m->head;

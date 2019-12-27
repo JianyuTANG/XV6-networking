@@ -54,7 +54,7 @@ void            net_tx_udp(struct mbuf *, uint32_t, uint16_t, uint16_t);
 void            sockinit(void);
 int             sockalloc(struct file **, uint32_t, uint16_t, uint16_t);
 void            sockrecvudp(struct mbuf *, uint32_t, uint16_t, uint16_t);
-void            socksendudp(struct sock *, int, char *);
+void            socksendudp(struct file *, int , char *);
 
 // fs.c
 void            readsb(int dev, struct superblock *sb);
