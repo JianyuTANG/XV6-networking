@@ -80,12 +80,6 @@ bad:
   return -1;
 }
 
-//
-// Your code here.
-//
-// Add and wire in methods to handle closing, reading,
-// and writing for network sockets.
-//
 
 // called by protocol handler layer to deliver UDP packets
 void

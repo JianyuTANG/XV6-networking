@@ -16,7 +16,7 @@ struct inode {
   uint dev;           // Device number
   uint inum;          // Inode number
   int ref;            // Reference count
-  uint ctime;         //文件创建时间
+  uint ctime;         // 文件创建时间
   struct sleeplock lock; // protects everything below here
   int valid;          // inode has been read from disk?
 
