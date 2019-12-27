@@ -36,6 +36,7 @@ OBJS = \
 	nic.o\
 	e1000.o\
 	util.o\
+	net_utils.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf

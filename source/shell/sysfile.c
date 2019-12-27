@@ -655,7 +655,8 @@ int send_icmpRequest(char *interface, char *tarips, uint8_t type, uint8_t code)
   uint8_t posicmphdrcks;
   uint8_t pos = 0;
   //mac header
-  uint64_t tarmac = 0x52550a000202l;
+  //uint64_t tarmac = 0x52550a000202l;
+  uint64_t tarmac = 0x525400123456l;
   uint64_t srcmac = 0x525400123456l;
   uint16_t macprotocal = 0x0800;
 
@@ -1057,5 +1058,10 @@ int sys_ping(char* dest_)
     return -1;
   }
   cprintf(_dest);
+  int src_port=0;
+  int dest_port=1;
+  if(ping_executor(_dest,src_port,dest_port)!=0){
+    return -1;
+  };
   return 0;
 }
