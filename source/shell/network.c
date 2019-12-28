@@ -19,7 +19,9 @@ struct EthernetHeader
 
 struct IPHeader
 {
-    uint8_t header[9];
+    uint8_t header1[2];
+    uint16_t TOL;
+    uint8_t header2[5];
     uint8_t protocal;
     uint16_t cksum;
     uint32_t srcip;
@@ -66,20 +68,6 @@ static uint8_t memcpy(uint8_t *dest, uint8_t *src, uint8_t len)
         dest[i] = src[i];
     }
     return len;
-}
-
-uint16_t calc_checksum(uint16_t *buffer, int size)
-{
-    unsigned long cksum = 0;
-    while (size > 1)
-    {
-        cksum += *buffer++;
-        --size;
-    }
-
-    cksum = (cksum >> 16) + (cksum & 0xffff);
-    cksum += (cksum >> 16);
-    return (uint16_t)(~cksum);
 }
 
 // This code is lifted from FreeBSD's ping.c, and is copyright by the Regents
@@ -405,7 +393,7 @@ int send_arpRequest(struct nic_device *nd, char *ipAddr)
     memmove(eth.data, the_e1000->mac_addr, 6);
     memmove(eth.data + 10, &dmac, 6);
 
-    *(uint32_t *)(eth.data + 6) = htonl(IP2int("10.0.2.15"));
+    *(uint32_t *)(eth.data + 6) = htonl(the_e1000->ip);
     *(uint32_t *)(eth.data + 16) = htonl(IP2int(ipAddr));
 
     return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), &dmac, PROT_ARP);
@@ -425,7 +413,7 @@ int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t 
     fillbuf(&hdr.cksum, 0, cksum, sizeof(cksum));
     uint16_t seq = 921;
     fillbuf(&hdr.seq, 0, seq, sizeof(seq));
-    cksum = calc_checksum((uint16_t *)&hdr, 4);
+    cksum = in_cksum(&hdr, sizeof(struct ICMPHeader));
     fillbuf(&hdr.cksum, 0, cksum, sizeof(hdr.cksum));
 
     uint32_t tarip = IP2int(tarips);
@@ -503,11 +491,9 @@ void recv_IP_datagram(uint8_t *data, uint len)
     struct IPHeader *header = data;
     uint cksum = header->cksum;
     header->cksum = 0;
-    if (in_cksum(data, 20) != cksum)
+    if (in_cksum(data, sizeof(struct IPHeader)) != cksum)
     {
-        cprintf("%x  ", cksum);
-        cprintf("%x  ", in_cksum(data, 20));
-        cprintf("ERROR:recv_IP_datagram: invalid checksum.\n");
+        cprintf("ERROR:recv_IP_datagram:checksum failed.\n");
         return;
     }
 
@@ -515,6 +501,7 @@ void recv_IP_datagram(uint8_t *data, uint len)
     {
     case PROT_UDP:
         cprintf("UDP Reply\n");
+        deliver_pkt(data + sizeof(struct IPHeader), header->TOL - sizeof(struct IPHeader), htonl(header->srcip));
         break;
 
     default:

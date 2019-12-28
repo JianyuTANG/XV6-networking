@@ -186,8 +186,15 @@ net_rx_udp(struct mbuf *m, uint16_t len, uint32_t source_ip)
   // TODO: validate UDP checksum
 
   // validate lengths reported in headers
-  if (ntohs(udphdr->ulen) != len)
+  if (ntohs(udphdr->ulen) <= len)
+  {
+    len = ntohs(udphdr->ulen);
+  }
+  else
+  {
     goto fail;
+  }
+  
   len -= sizeof(*udphdr);
   if (len > m->len)
     goto fail;
