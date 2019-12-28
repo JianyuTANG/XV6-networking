@@ -7,7 +7,7 @@
 #define BROADCAST_MAC 0xFFFFFFFFFFFF
 #define PROT_IP 0x0800
 #define PROT_ARP 0x0806
-
+#define PROT_UDP 17
 #define PROT_ICMP 1
 
 struct EthernetHeader
@@ -15,6 +15,15 @@ struct EthernetHeader
     uint8_t tarmac[6];
     uint8_t srcmac[6];
     uint16_t protocal;
+};
+
+struct IPHeader
+{
+    uint8_t header[9];
+    uint8_t protocal;
+    uint16_t cksum;
+    uint32_t srcip;
+    uint32_t tarip;
 };
 
 struct ICMPHeader
@@ -67,6 +76,7 @@ uint16_t calc_checksum(uint16_t *buffer, int size)
         cksum += *buffer++;
         --size;
     }
+    
     cksum = (cksum >> 16) + (cksum & 0xffff);
     cksum += (cksum >> 16);
     return (uint16_t)(~cksum);
@@ -218,49 +228,45 @@ void parse_ip(uint ip, char *ip_str)
 {
 
     uint v = 255;
-    uint ip_vals[4];
-
-    for (int i = 0; i >= 0; i--)
-    {
-        ip_vals[i] = ip && v;
-        v = v << 8;
-    }
+    uint8_t *ip_vals = &ip;
 
     int c = 0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 3; i >= 0; i--)
     {
-        uint ip1 = ip_vals[i];
+        uint8_t ip1 = ip_vals[i];
 
         if (ip1 == 0)
         {
             ip_str[c++] = '0';
-            ip_str[c++] = ':';
         }
         else
         {
-            //unsigned int n_digits = 0;
-            char arr[3];
-            int j = 0;
-
-            while (ip1 > 0)
+            if (ip1 >= 100)
             {
-                arr[j++] = (ip1 % 10) + '0';
-                ip1 /= 10;
+                ip_str[c++] = ip1 / 100 + '0';
+                ip1 = ip1 % 100;
+                ip_str[c++] = ip1 / 10 + '0';
+                ip1 = ip1 % 10;
+                ip_str[c++] = ip1 + '0';
             }
-
-            for (j = j - 1; j >= 0; j--)
+            else if (ip1 >= 10)
             {
-                ip_str[c++] = arr[j];
+                ip_str[c++] = ip1 / 10 + '0';
+                ip1 = ip1 % 10;
+                ip_str[c++] = ip1 + '0';
             }
-
-            ip_str[c++] = ':';
+            else
+            {
+                ip_str[c++] = ip1 + '0';
+            }
         }
+        ip_str[c++] = '.';
     }
 
     ip_str[c - 1] = '\0';
 }
 
-int send_Ethernet_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uint8_t* tarmac, uint16_t protocal)
+int send_Ethernet_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uint8_t *tarmac, uint16_t protocal)
 {
     struct e1000 *the_e1000 = (struct e1000 *)nd->driver;
     uint8_t *buffer = (uint8_t *)kalloc();
@@ -296,12 +302,11 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     uint16_t vrs = 4;
     uint16_t IHL = 5;
     uint16_t TOS = 0;
-    uint16_t TOL = 28;
+    uint16_t TOL = payload_len + sizeof(struct IPHeader);
     uint16_t ID = id++;
     uint16_t flag = 0;
     uint16_t offset = 0;
     uint16_t TTL = 32;
-    // uint16_t protocal = 1; //ICMP
 
     uint8_t *piphdr = &buffer[pos];
     pos = fillbuf(buffer, pos, (vrs << 4) + IHL, 1);
@@ -326,8 +331,8 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     // pos = fillbuf(buffer, pos, payload, payload_len);
     pos += memcpy(buffer + pos, payload, payload_len);
 
-    // cksum = calc_checksum((uint16_t *)piphdr, 10);
-    // fillbuf(buffer, posiphdrcks, cksum, 2);
+    cksum = calc_checksum((uint16_t *)piphdr, 10);
+    fillbuf(buffer, posiphdrcks, cksum, 2);
 
     // uint16_t macprotocal = 0x0800;
     // uint64_t dmac;
@@ -368,43 +373,6 @@ int send_arpRequest(struct nic_device *nd, char *ipAddr)
     return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), &dmac, PROT_ARP);
 }
 
-void send_arpReply(struct nic_device *nd, struct ARPHeader *request)
-{
-    struct e1000 *e1000 = (struct e1000 *)nd->driver;
-
-    uint32_t tar_ip = htonl(*(uint32_t *)(request->data + 16));
-    if (tar_ip != e1000->ip)
-    {
-        cprintf("not my ip:%x\n", tar_ip);
-        return;
-    }
-
-    uint8_t* dmac = request->data;
-    // memmove(&dmac, request->data + 10, 6);
-
-    if (tar_ip == e1000->gateway_ip)
-        memmove(e1000->gateway_mac_addr, &dmac, 6);
-
-    cprintf("Create ARP frame\n");
-    struct ARPHeader eth;
-
-    /** ARP packet filling **/
-    eth.hwtype = htons(1);
-    eth.protype = htons(0x0800);
-
-    eth.hwsize = 0x06;
-    eth.prosize = 0x04;
-
-    //arp request
-    eth.opcode = htons(2);
-
-    memmove(eth.data, e1000->mac_addr, 6);
-    *(uint32_t *)(eth.data + 6) = htonl(e1000->ip);
-    memmove(eth.data + 10, request->data, 10);
-
-    send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), dmac, PROT_ARP);
-}
-
 int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t code)
 {
     // static uint16_t id = 1;
@@ -435,48 +403,83 @@ void recv_ARP(struct nic_device *nd, struct ARPHeader *data)
         return;
     }
 
+    struct e1000 *e1000 = (struct e1000 *)nd->driver;
+
     switch (htons(data->opcode))
     {
     case 1:
         cprintf("ARP Request\n");
-        send_arpReply(nd, data);
-        break;
+        {
+            uint32_t tar_ip = htonl(*(uint32_t *)(data->data + 16));
+            if (tar_ip != e1000->ip)
+            {
+                cprintf("not my ip:%x\n", tar_ip);
+                return;
+            }
+
+            uint8_t *dmac = data->data;
+            // memmove(&dmac, request->data + 10, 6);
+
+            if (tar_ip == e1000->gateway_ip)
+                memmove(e1000->gateway_mac_addr, &dmac, 6);
+
+            cprintf("Create ARP frame\n");
+            struct ARPHeader eth;
+
+            /** ARP packet filling **/
+            eth.hwtype = htons(1);
+            eth.protype = htons(0x0800);
+
+            eth.hwsize = 0x06;
+            eth.prosize = 0x04;
+
+            //arp request
+            eth.opcode = htons(2);
+
+            memmove(eth.data, e1000->mac_addr, 6);
+            *(uint32_t *)(eth.data + 6) = htonl(e1000->ip);
+            memmove(eth.data + 10, data->data, 10);
+
+            send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), dmac, PROT_ARP);
+        }
+        return;
 
     case 2:
         cprintf("ARP Reply\n");
-        // parse_arpReply(nd, data);
-        break;
+        {
+            uint32_t tar_ip = htonl(*(uint32_t *)(data->data + 16));
+            uint8_t *dmac = data->data;
+            if (tar_ip == e1000->gateway_ip)
+                memmove(e1000->gateway_mac_addr, &dmac, 6);
+        }
+        return;
 
     default:
         cprintf("Not an ARP reply: %x\n", data->opcode);
         return;
     }
+}
 
-    // char* my_mac = (char*)"FF:FF:FF:FF:FF:FF";
-    // char dst_mac[18];
+void recv_IP_datagram(uint8_t *data, uint len)
+{
+    struct IPHeader *header = data;
+    uint cksum = htons(header->cksum);
+    // header->cksum = 0;
+    if (calc_checksum(data, len) != cksum)
+    {
+        cprintf("ERROR:recv_IP_datagram: invalid checksum.\n");
+        return;
+    }
 
-    // unpack_mac(eth.arp_dmac, dst_mac);
+    switch(header->protocal)
+    {
+        case PROT_UDP:
+        cprintf("UDP Reply\n");
+        break;
 
-    // if (util_strcmp((const char*)my_mac, (const char*)dst_mac)) {
-    // 	cprintf("Not the intended recipient\n");
-    // 	return;
-    // }
-
-    // //parse sip; it should be equal to the one we sent
-    // char* my_ip = (char*)"255.255.255.255";
-    // char dst_ip[16];
-
-    // parse_ip(eth.dip, dst_ip);
-
-    // if (util_strcmp((const char*)my_ip, (const char*)dst_ip)) {
-    //     cprintf("Not the intended recipient\n");
-    //     return;
-    // }
-
-    // char mac[18];
-    // unpack_mac(eth.arp_smac, mac);
-
-    // cprintf((char*)mac);
+        default:
+        cprintf("unsupported IP protocal:%d\n", header->protocal);
+    }
 }
 
 void recv_Ethernet_frame(struct nic_device *nd, uint8_t *frame, int frame_len)
@@ -493,7 +496,7 @@ void recv_Ethernet_frame(struct nic_device *nd, uint8_t *frame, int frame_len)
     switch (htons(header->protocal))
     {
     case PROT_IP:
-        cprintf("IP protocal:%x", header->protocal);
+        recv_IP_datagram(frame + sizeof(struct EthernetHeader), frame_len - sizeof(struct EthernetHeader));
         break;
 
     case PROT_ARP:
