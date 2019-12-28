@@ -7,7 +7,8 @@
 
 #define BROADCAST_MAC "FF:FF:FF:FF:FF:FF"
 
-volatile struct e1000 *e1000;
+// volatile struct e1000 *e1000;
+// volatile struct nic_device *nd0;
 
 static void e1000_reg_write(uint32_t reg_addr, uint32_t value, struct e1000 *the_e1000)
 {
@@ -87,8 +88,7 @@ int e1000_setmac(void *driver, uint64_t macaddr)
 int e1000_init(struct pci_func *pcif, void *nd_p)
 {
   struct nic_device *nd = nd_p;
-  e1000 = (struct e1000 *)kalloc();
-  struct e1000 *the_e1000 = e1000;
+  struct e1000 *the_e1000 = (struct e1000 *)kalloc();
 
   for (int i = 0; i < 6; i++)
   {
@@ -333,7 +333,13 @@ void e1000_recv(void *driver, uint8_t *pkt, uint16_t *length)
 
 void e1000_intr(void)
 {
-  // struct e1000 *e1000 = nd0->driver;
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:e1000_intr:Device not loaded\n");
+    return;
+  }
+  struct e1000 *e1000 = nd->driver;
   uint32_t icr = e1000_reg_read(E1000_ICR, e1000);
   cprintf("", icr);
   cprintf("get new e1000 packet:\n");
@@ -354,7 +360,7 @@ void e1000_intr(void)
     }
     cprintf("\n\n");
     cprintf("ip %d.%d.%d.%d is at %x:%x:%x:%x:%x:%x\n", pp[28], pp[29], pp[30], pp[31], pp[22], pp[23], pp[24], pp[25], pp[26], pp[27]);
-    // recv_LAN_frame(nd0, p, length);
+    // recv_LAN_frame(nd, p, length);
   }
 
   // e1000_recv()
