@@ -7,7 +7,7 @@
 #include "memlayout.h"
 #include "x86.h"
 #include "spinlock.h"
-#include "network_stack.h"
+#include "network_transmission.h"
 #include "defs.h"
 #include "fs.h"
 #include "sleeplock.h"

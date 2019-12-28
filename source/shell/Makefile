@@ -36,7 +36,7 @@ OBJS = \
 	nic.o\
 	e1000.o\
 	util.o\
-	network_stack.o\
+	network_transmission.o\
 	sysnet.o\
 	
 
