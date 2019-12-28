@@ -87,34 +87,36 @@ uint16_t calc_checksum(uint16_t *buffer, int size)
 static unsigned short
 in_cksum(const unsigned char *addr, int len)
 {
-  int nleft = len;
-  const unsigned short *w = (const unsigned short *)addr;
-  unsigned int sum = 0;
-  unsigned short answer = 0;
+    int nleft = len;
+    const unsigned short *w = (const unsigned short *)addr;
+    unsigned int sum = 0;
+    unsigned short answer = 0;
 
-  /*
+    /*
    * Our algorithm is simple, using a 32 bit accumulator (sum), we add
    * sequential 16 bit words to it, and at the end, fold back all the
    * carry bits from the top 16 bits into the lower 16 bits.
    */
-  while (nleft > 1)  {
-    sum += *w++;
-    nleft -= 2;
-  }
+    while (nleft > 1)
+    {
+        sum += *w++;
+        nleft -= 2;
+    }
 
-  /* mop up an odd byte, if necessary */
-  if (nleft == 1) {
-    *(unsigned char *)(&answer) = *(const unsigned char *)w;
-    sum += answer;
-  }
+    /* mop up an odd byte, if necessary */
+    if (nleft == 1)
+    {
+        *(unsigned char *)(&answer) = *(const unsigned char *)w;
+        sum += answer;
+    }
 
-  /* add back carry outs from top 16 bits to low 16 bits */
-  sum = (sum & 0xffff) + (sum >> 16);
-  sum += (sum >> 16);
-  /* guaranteed now that the lower 16 bits of sum are correct */
+    /* add back carry outs from top 16 bits to low 16 bits */
+    sum = (sum & 0xffff) + (sum >> 16);
+    sum += (sum >> 16);
+    /* guaranteed now that the lower 16 bits of sum are correct */
 
-  answer = ~sum; /* truncate to 16 bits */
-  return answer;
+    answer = ~sum; /* truncate to 16 bits */
+    return answer;
 }
 
 uint32_t IP2int(char *sIP)
@@ -343,7 +345,7 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     uint16_t offset = 0;
     uint16_t TTL = 32;
 
-    uint8_t *piphdr = &buffer[pos];
+    // uint8_t *piphdr = buffer;
     pos = fillbuf(buffer, pos, (vrs << 4) + IHL, 1);
     pos = fillbuf(buffer, pos, TOS, 1);
     pos = fillbuf(buffer, pos, TOL, 2);
@@ -366,8 +368,9 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     // pos = fillbuf(buffer, pos, payload, payload_len);
     pos += memcpy(buffer + pos, payload, payload_len);
 
-    cksum = calc_checksum((uint16_t *)piphdr, 10);
-    fillbuf(buffer, posiphdrcks, cksum, 2);
+    cksum = in_cksum(buffer, 20);
+    memmove(buffer + posiphdrcks, &cksum, 2);
+    // fillbuf(buffer, posiphdrcks, cksum, 2);
 
     // uint16_t macprotocal = 0x0800;
     // uint64_t dmac;
@@ -498,21 +501,23 @@ void recv_ARP(struct nic_device *nd, struct ARPHeader *data)
 void recv_IP_datagram(uint8_t *data, uint len)
 {
     struct IPHeader *header = data;
-    uint cksum = htons(header->cksum);
-    // header->cksum = 0;
-    if (calc_checksum(data, 10) != cksum)
+    uint cksum = header->cksum;
+    header->cksum = 0;
+    if (in_cksum(data, 20) != cksum)
     {
+        cprintf("%x  ", cksum);
+        cprintf("%x  ", in_cksum(data, 20));
         cprintf("ERROR:recv_IP_datagram: invalid checksum.\n");
         return;
     }
 
-    switch(header->protocal)
+    switch (header->protocal)
     {
-        case PROT_UDP:
+    case PROT_UDP:
         cprintf("UDP Reply\n");
         break;
 
-        default:
+    default:
         cprintf("unsupported IP protocal:%d\n", header->protocal);
     }
 }
