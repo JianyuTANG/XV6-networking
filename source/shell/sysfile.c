@@ -974,4 +974,19 @@ sys_connect(void)
   }
 
   return fd;
+int sys_ping(char* dest_)
+{
+  char *_dest;
+  if (argstr(0, &_dest) < 0)
+  {
+    cprintf("ERROR:sys_ping:Failed to fetch arguments");
+    return -1;
+  }
+  cprintf(_dest);
+  int src_port=0;
+  int dest_port=1;
+  if(ping_executor(_dest,src_port,dest_port)!=0){
+    return -1;
+  };
+  return 0;
 }

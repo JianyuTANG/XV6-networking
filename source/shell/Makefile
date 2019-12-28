@@ -41,6 +41,7 @@ OBJS = \
 	
 
 # arp_frame.o\
+	net_utils.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -251,6 +252,7 @@ UPROGS=\
 	_stdtests\
 	_icmptest\
 	_ipconfig\
+	_ping\
 
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua

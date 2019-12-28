@@ -125,6 +125,7 @@ extern int sys_checknic(void);
 extern int sys_icmptest(void);
 extern int sys_ipconfig(void);
 extern int sys_connect(void);
+extern int sys_ping(char*);
 
 extern int sys_reparent(void);
 extern int sys_getstate(void);
@@ -185,6 +186,7 @@ static int (*syscalls[])(void) = {
 [SYS_icmptest] sys_icmptest,
 [SYS_ipconfig] sys_ipconfig,
 [SYS_connect] sys_connect,
+[SYS_ping] sys_ping,
 
 [SYS_reparent] sys_reparent,
 [SYS_getstate] sys_getstate,

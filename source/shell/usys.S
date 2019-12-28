@@ -35,6 +35,7 @@ SYSCALL(checknic)
 SYSCALL(icmptest)
 SYSCALL(ipconfig)
 SYSCALL(connect)
+SYSCALL(ping)
 
 SYSCALL(reparent)
 SYSCALL(getstate)
