@@ -69,7 +69,7 @@ int e1000_setmac(void *driver, uint64_t macaddr)
   struct e1000 *e1000 = (struct e1000 *)driver;
   memmove(e1000->mac_addr, &macaddr, 6);
   e1000_reg_write(E1000_RCV_RAL0, *(uint32_t *)&macaddr, e1000);
-  e1000_reg_write(E1000_RCV_RAH0, *(uint16_t *)(&macaddr+4), e1000);
+  e1000_reg_write(E1000_RCV_RAH0, *(uint16_t *)(&macaddr + 4), e1000);
 
   // uint32_t macaddr_l = e1000_reg_read(E1000_RCV_RAL0, e1000);
   // uint32_t macaddr_h = e1000_reg_read(E1000_RCV_RAH0, e1000);
@@ -304,6 +304,9 @@ int e1000_init(struct pci_func *pcif, void *nd_p)
   ioapicenable(the_e1000->irq_line, 0);
   ioapicenable(the_e1000->irq_line, 1);
 
+  // uint32_t icr = e1000_reg_read(E1000_ICR, e1000);
+  // cprintf("old icr:%x\n", icr);
+
   nd->driver = the_e1000;
   // driver = the_e1000;
   return 0;
@@ -332,6 +335,7 @@ void e1000_intr(void)
 {
   // struct e1000 *e1000 = nd0->driver;
   uint32_t icr = e1000_reg_read(E1000_ICR, e1000);
+  cprintf("", icr);
   cprintf("get new e1000 packet:\n");
   uint8_t *p = (uint8_t *)kalloc();
   uint8_t *pp = p;
@@ -352,5 +356,6 @@ void e1000_intr(void)
     cprintf("ip %d.%d.%d.%d is at %x:%x:%x:%x:%x:%x\n", pp[28], pp[29], pp[30], pp[31], pp[22], pp[23], pp[24], pp[25], pp[26], pp[27]);
     // recv_LAN_frame(nd0, p, length);
   }
+
   // e1000_recv()
 }
