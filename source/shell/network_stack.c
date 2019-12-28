@@ -16,6 +16,26 @@ static uint32_t local_ip = MAKE_IP_ADDR(10, 0, 2, 15); // qemu's idea of the gue
 static uint8_t local_mac[ETHADDR_LEN] = { 0x52, 0x54, 0x00, 0x12, 0x34, 0x56 };
 static uint8_t broadcast_mac[ETHADDR_LEN] = { 0xFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF };
 
+uint32_t getIP(char *sIP)
+{
+  int i = 0;
+  uint32_t v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+  cprintf(sIP);
+  cprintf("\n");
+  cprintf("%d\n", sIP[9]);
+  for (i = 0; sIP[i] != '\0'; ++i)
+    ;
+  for (i = 0; sIP[i] != '.'; ++i)
+    v1 = v1 * 10 + sIP[i] - '0';
+  for (++i; sIP[i] != '.'; ++i)
+    v2 = v2 * 10 + sIP[i] - '0';
+  for (++i; sIP[i] != '.'; ++i)
+    v3 = v3 * 10 + sIP[i] - '0';
+  for (++i; sIP[i] != '\0'; ++i)
+    v4 = v4 * 10 + sIP[i] - '0';
+  return (v1 << 24) + (v2 << 16) + (v3 << 8) + v4;
+}
+
 // Strips data from the start of the buffer and returns a pointer to it.
 // Returns 0 if less than the full requested length is available.
 char *
@@ -191,18 +211,29 @@ net_tx_eth(struct mbuf *m, uint16_t ethtype)
 static void
 net_tx_ip(struct mbuf *m, uint8_t proto, uint32_t dip)
 {
+  static uint16_t id = 1;
   struct ip *iphdr;
 
   // push the IP header
   iphdr = mbufpushhdr(m, *iphdr);
   memset(iphdr, 0, sizeof(*iphdr));
+
+  uint16_t TOL = htons(m->len);
+  uint16_t ID = id++;
+  uint16_t TTL = 32;
+  // uint16_t protocal = 17; //UDP protocol值是17 见 计算机网络自顶向下方法
+  uint16_t cksum = in_cksum((unsigned char *)iphdr, sizeof(*iphdr));
+  // src ip 获取方式可改善
+  uint32_t srcip = getIP("10.0.2.15");
+
   iphdr->ip_vhl = (4 << 4) | (20 >> 2);
   iphdr->ip_p = proto;
+  iphdr->ip_id = ID;
   iphdr->ip_src = htonl(local_ip);
   iphdr->ip_dst = htonl(dip);
-  iphdr->ip_len = htons(m->len);
-  iphdr->ip_ttl = 100;
-  iphdr->ip_sum = in_cksum((unsigned char *)iphdr, sizeof(*iphdr));
+  iphdr->ip_len = TOL;
+  iphdr->ip_ttl = TTL;
+  iphdr->ip_sum = cksum;
 
   // now on to the ethernet layer
   net_tx_eth(m, ETHTYPE_IP);
@@ -381,4 +412,21 @@ void net_rx(struct mbuf *m)
     net_rx_arp(m);
   else
     mbuffree(m);
+}
+
+void deliver_pkt(char *buf_addr, uint32_t len)
+{
+  struct mbuf *m;
+  m = mbufalloc(MBUF_DEFAULT_HEADROOM);
+  char *startpos = (char *)m->head;
+  uint32_t maxlen = MBUF_SIZE - MBUF_DEFAULT_HEADROOM;
+  if(maxlen < len)
+  {
+    len = maxlen;
+  }
+  for(int i = 0; i < len; i++)
+  {
+    startpos[i] = buf_addr[i];
+  }
+  net_rx_ip(m);
 }
