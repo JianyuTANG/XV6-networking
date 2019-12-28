@@ -115,8 +115,15 @@ fileread(struct file *f, char *addr, int n)
   }
   if(f->type == FD_SOCK)
   {
-    r = sockread(f, addr, n);
-    return r;
+    while(1)
+    {
+      r = sockread(f, addr, n);
+      if(r > 0)
+      {
+        return r;
+      }
+    }
+    return -1;
   }
   panic("fileread");
 }
