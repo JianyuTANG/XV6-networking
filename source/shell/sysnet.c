@@ -133,7 +133,7 @@ void sockclose(struct file *f)
   
   kfree((char *)s);
   f->sock = 0;
-  return 0;
+  return;
 }
 
 int sockread(struct file *f, char *addr, int n)

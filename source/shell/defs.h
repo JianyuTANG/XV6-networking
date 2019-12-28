@@ -69,7 +69,7 @@ int             swapdealloc(struct proc *p);
 int             swapread(struct proc *p, char *buf, uint offset, uint size);
 int             swapwrite(struct proc *p, char *buf, uint offset, uint size);
 
-// network_stack.c
+// network_transmission.c
 void            deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip);
 
 // network.c

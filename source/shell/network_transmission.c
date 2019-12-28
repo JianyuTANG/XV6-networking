@@ -7,7 +7,7 @@
 #include "memlayout.h"
 #include "x86.h"
 #include "spinlock.h"
-#include "network_stack.h"
+#include "network_transmission.h"
 #include "defs.h"
 #include "nic.h"
 
@@ -220,5 +220,6 @@ void deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip)
   {
     startpos[i] = buf_addr[i];
   }
+  mbufput(m, len);
   net_rx_udp(m, len, source_ip);
 }
