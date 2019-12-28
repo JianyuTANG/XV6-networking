@@ -172,7 +172,7 @@ net_tx_udp(struct mbuf *m, uint32_t dip,
 
 // receives a UDP packet
 static void
-net_rx_udp(struct mbuf *m, uint16_t len, struct ip *iphdr)
+net_rx_udp(struct mbuf *m, uint16_t len, uint32_t source_ip)
 {
   struct udp *udphdr;
   uint32_t sip;
@@ -195,10 +195,10 @@ net_rx_udp(struct mbuf *m, uint16_t len, struct ip *iphdr)
   mbuftrim(m, m->len - len);
 
   // parse the necessary fields
-  sip = ntohl(iphdr->ip_src);
+  // sip = ntohl(iphdr->ip_src);
   sport = ntohs(udphdr->sport);
   dport = ntohs(udphdr->dport);
-  sockrecvudp(m, sip, dport, sport);
+  sockrecvudp(m, source_ip, dport, sport);
   return;
 
 fail:
@@ -220,5 +220,5 @@ void deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip)
   {
     startpos[i] = buf_addr[i];
   }
-  net_rx_ip(m);
+  net_rx_udp(m, len, source_ip);
 }

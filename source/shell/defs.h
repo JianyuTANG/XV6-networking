@@ -70,14 +70,12 @@ int             swapread(struct proc *p, char *buf, uint offset, uint size);
 int             swapwrite(struct proc *p, char *buf, uint offset, uint size);
 
 // network_stack.c
-void            net_rx(struct mbuf *);
-void            net_tx_udp(struct mbuf *, uint32_t, uint16_t, uint16_t);
 void            deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip);
 
 // network.c
 struct nic_device;
 
-int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, uint32_t tarip, uint16_t protocal);
+int             send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, uint32_t tarip, uint16_t protocal);
 
 // sysnet.c
 void            sockinit(void);
