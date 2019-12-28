@@ -180,6 +180,26 @@ in_cksum(const unsigned char *addr, int len)
   return answer;
 }
 
+uint16_t calc_checksum(const char *buffer, int size)
+{
+  const uint16_t *buf = (const uint16_t *)buffer;
+  unsigned long cksum = 0;
+  while (size > 1)
+  {
+    cksum += *buffer++;
+    size -= 2;
+  }
+
+  if(size == 1)
+  {
+    cksum += *(const char *)buf;
+  }
+
+  cksum = (cksum >> 16) + (cksum & 0xffff);
+  cksum += (cksum >> 16);
+  return (uint16_t)(~cksum);
+}
+
 // sends an ethernet packet
 static void
 net_tx_eth(struct mbuf *m, uint16_t ethtype)
@@ -257,71 +277,6 @@ net_tx_udp(struct mbuf *m, uint32_t dip,
   net_tx_ip(m, IPPROTO_UDP, dip);
 }
 
-// sends an ARP packet
-static int
-net_tx_arp(uint16_t op, uint8_t dmac[ETHADDR_LEN], uint32_t dip)
-{
-  struct mbuf *m;
-  struct arp *arphdr;
-
-  m = mbufalloc(MBUF_DEFAULT_HEADROOM);
-  if (!m)
-    return -1;
-
-  // generic part of ARP header
-  arphdr = mbufputhdr(m, *arphdr);
-  arphdr->hrd = htons(ARP_HRD_ETHER);
-  arphdr->pro = htons(ETHTYPE_IP);
-  arphdr->hln = ETHADDR_LEN;
-  arphdr->pln = sizeof(uint32_t);
-  arphdr->op = htons(op);
-
-  // ethernet + IP part of ARP header
-  memmove(arphdr->sha, local_mac, ETHADDR_LEN);
-  arphdr->sip = htonl(local_ip);
-  memmove(arphdr->tha, dmac, ETHADDR_LEN);
-  arphdr->tip = htonl(dip);
-
-  // header is ready, send the packet
-  net_tx_eth(m, ETHTYPE_ARP);
-  return 0;
-}
-
-// receives an ARP packet
-static void
-net_rx_arp(struct mbuf *m)
-{
-  struct arp *arphdr;
-  uint8_t smac[ETHADDR_LEN];
-  uint32_t sip, tip;
-
-  arphdr = mbufpullhdr(m, *arphdr);
-  if (!arphdr)
-    goto done;
-
-  // validate the ARP header
-  if (ntohs(arphdr->hrd) != ARP_HRD_ETHER ||
-      ntohs(arphdr->pro) != ETHTYPE_IP ||
-      arphdr->hln != ETHADDR_LEN ||
-      arphdr->pln != sizeof(uint32_t)) {
-    goto done;
-  }
-
-  // only requests are supported so far
-  // check if our IP was solicited
-  tip = ntohl(arphdr->tip); // target IP address
-  if (ntohs(arphdr->op) != ARP_OP_REQUEST || tip != local_ip)
-    goto done;
-
-  // handle the ARP request
-  memmove(smac, arphdr->sha, ETHADDR_LEN); // sender's ethernet address
-  sip = ntohl(arphdr->sip); // sender's IP address (qemu's slirp)
-  net_tx_arp(ARP_OP_REPLY, smac, sip);
-
-done:
-  mbuffree(m);
-}
-
 // receives a UDP packet
 static void
 net_rx_udp(struct mbuf *m, uint16_t len, struct ip *iphdr)
@@ -392,27 +347,6 @@ fail:
   mbuffree(m);
 }
 
-// called by e1000 driver's interrupt handler to deliver a packet to the
-// networking stack
-void net_rx(struct mbuf *m)
-{
-  struct eth *ethhdr;
-  uint16_t type;
-
-  ethhdr = mbufpullhdr(m, *ethhdr);
-  if (!ethhdr) {
-    mbuffree(m);
-    return;
-  }
-
-  type = ntohs(ethhdr->type);
-  if (type == ETHTYPE_IP)
-    net_rx_ip(m);
-  else if (type == ETHTYPE_ARP)
-    net_rx_arp(m);
-  else
-    mbuffree(m);
-}
 
 void deliver_pkt(char *buf_addr, uint32_t len)
 {
