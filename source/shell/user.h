@@ -32,7 +32,7 @@ int uptime(void);
 int arp(char*);
 int checknic(int,int);
 int icmptest(int,int);
-int ifconfig(char* cmd, char* val);
+int ipconfig(char* cmd, char* val);
 
 int reparent(int,int);
 void jobs (void);

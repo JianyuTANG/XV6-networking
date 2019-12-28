@@ -33,7 +33,7 @@ SYSCALL(uptime)
 SYSCALL(arp)
 SYSCALL(checknic)
 SYSCALL(icmptest)
-SYSCALL(ifconfig)
+SYSCALL(ipconfig)
 
 SYSCALL(reparent)
 SYSCALL(getstate)
