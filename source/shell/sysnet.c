@@ -99,9 +99,10 @@ void socksendudp(struct file *f, int n, char *addr)
 
 void sockclose(struct file *f)
 {
-  acquire(&lock);
+  
   struct sock *s = f->sock;
   // delete s from linked list
+  acquire(&lock);
   struct sock *pos = sockets;
   if(pos == s)
   {
@@ -121,6 +122,15 @@ void sockclose(struct file *f)
     pos->next = s->next;
   }
   release(&lock);
+  // release the mbuf queue
+  struct mbuf *head = s->rxq.head;
+  while(head)
+  {
+    struct mbuf *temp = head;
+    head = head->next;
+    mbuffree(temp);
+  }
+  
   kfree((char *)s);
   f->sock = 0;
   return 0;
@@ -132,9 +142,10 @@ int sockread(struct file *f, char *addr, int n)
   struct sock *s = f->sock;
   struct mbufq rxq = s->rxq;
   struct mbuf *cur = mbufq_pophead(&rxq);
+  int len = -1;
   if(cur)
   {
-    int len = cur->len;
+    len = cur->len;
     if(len > n)
     {
       len = n;
@@ -144,9 +155,9 @@ int sockread(struct file *f, char *addr, int n)
     {
       addr[i] = buf[i];
     }
-    return len;
+    mbuffree(cur);
   }
-  return -1;
+  return len;
 }
 
 // called by protocol handler layer to deliver UDP packets
