@@ -1,7 +1,4 @@
 #include "types.h"
-#include "nic.h"
-
-// int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, char *str_tarip, uint16_t protocal);
 
 struct nic_device;
 

@@ -283,7 +283,7 @@ int send_Ethernet_frame(struct nic_device *nd, uint8_t *payload, int payload_len
     return 0;
 }
 
-int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, char *str_tarip, uint16_t protocal)
+int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, uint32_t tarip, uint16_t protocal)
 {
     struct e1000 *e1000 = (struct e1000 *)nd->driver;
     static uint16_t id = 1;
@@ -316,7 +316,7 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, c
 
     uint32_t srcip = e1000->ip;
 
-    uint32_t tarip = IP2int(str_tarip);
+    // uint32_t tarip = IP2int(str_tarip);
     posiphdrcks = pos;
     pos = fillbuf(buffer, pos, cksum, 2);
     pos = fillbuf(buffer, pos, srcip, 4);
@@ -368,7 +368,7 @@ int send_arpRequest(struct nic_device *nd, char *ipAddr)
     return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), &dmac, PROT_ARP);
 }
 
-int send_arpReply(struct nic_device *nd, struct ARPHeader *request)
+void send_arpReply(struct nic_device *nd, struct ARPHeader *request)
 {
     struct e1000 *e1000 = (struct e1000 *)nd->driver;
 
@@ -402,7 +402,7 @@ int send_arpReply(struct nic_device *nd, struct ARPHeader *request)
     *(uint32_t *)(eth.data + 6) = htonl(e1000->ip);
     memmove(eth.data + 10, request->data, 10);
 
-    return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), dmac, PROT_ARP);
+    send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), dmac, PROT_ARP);
 }
 
 int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t code)
@@ -422,7 +422,9 @@ int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t 
     cksum = calc_checksum((uint16_t *)&hdr, 4);
     fillbuf(&hdr.cksum, 0, cksum, sizeof(hdr.cksum));
 
-    return send_IP_datagram(nd, &hdr, sizeof(struct ICMPHeader), tarips, PROT_ICMP);
+    uint32_t tarip = IP2int(tarips);
+
+    return send_IP_datagram(nd, &hdr, sizeof(struct ICMPHeader), tarip, PROT_ICMP);
 }
 
 void recv_ARP(struct nic_device *nd, struct ARPHeader *data)
@@ -442,6 +444,7 @@ void recv_ARP(struct nic_device *nd, struct ARPHeader *data)
 
     case 2:
         cprintf("ARP Reply\n");
+        // parse_arpReply(nd, data);
         break;
 
     default:
