@@ -603,7 +603,14 @@ int sys_getcwd(void)
 
 int sys_icmptest(void)
 {
-  if (send_icmpRequest("mynet0", "10.0.2.2", 8, 0) < 0)
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:icmptest:Device not loaded\n");
+    return -1;
+  }
+
+  if (send_icmpRequest(nd, "10.0.2.2", 8, 0) < 0)
   {
     cprintf("ERROR:send request fails");
     return -1;
@@ -696,23 +703,32 @@ bad:
 
 int sys_arp(void)
 {
-  char *ipAddr, *arpResp;
+  char *ipAddr;
   int size;
 
-  if (argstr(0, &ipAddr) < 0)// || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+  if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
   {
     cprintf("ERROR:sys_createARP:Failed to fetch arguments");
     return -1;
   }
 
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return -1;
+  }
+
   // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
-  if (send_arpRequest(ipAddr) < 0)
+  if (send_arpRequest(nd, ipAddr) < 0)
   {
     cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
     return -1;
   }
 
-  struct e1000 *e1000p = (struct e1000 *)nic_devices[0].driver;
+  return 0;
+
+  struct e1000 *e1000p = (struct e1000 *)nd->driver;
   uint8_t *p = (uint8_t *)kalloc();
   uint8_t *pp = p;
   uint16_t length = 0;
@@ -926,29 +942,41 @@ int sys_lseek(void)
   return newoff;
 }
 
-int sys_ifconfig(void)
+int sys_ipconfig(void)
 {
-  char *cmd, *ip;
-  if (argstr(0, &cmd) < 0 || argstr(1, &ip) < 0)
+  char *cmd, *val;
+  if (argstr(0, &cmd) < 0 || argstr(1, &val) < 0)
   {
-    cprintf("ERROR:sys_ifconfig:Failed to fetch arguments");
-    return -1;
+    cprintf("ERROR:sys_ipconfig:Failed to fetch arguments");
+    return 0;
   }
 
   struct nic_device *nd;
   if (get_device("mynet0", &nd) < 0)
   {
-    cprintf("ERROR:sys_ifconfig:Device not loaded\n");
+    cprintf("ERROR:sys_ipconfig:Device not loaded\n");
     return -1;
   }
-  struct e1000 *e1000 = (struct e1000 *)(nd->driver);
-  char mac_str[18];
-  unpack_mac(e1000->mac_addr, mac_str);
+
   cprintf("cmd:%s\n\n", cmd);
-  cprintf("ip:%s\n\n", ip);
-  cprintf("%d\n\n", e1000->mac_addr);
-  cprintf("mynet0 Link encap:Ethernet  HWaddr %s\n", mac_str);
-  cprintf("inet addr:%s  Bcast:%s  Mask:%s\n", "183.173.62.228", "183.173.63.255", "255.255.248.0");
-  cprintf("UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1\n");
+  cprintf("ip:%s\n\n", val);
+
+  struct e1000 *e1000 = (struct e1000 *)(nd->driver);
+
+  if (strncmp(cmd, "inet", 4) == 0)
+  {
+    e1000->ip = IP2int(val);
+  }
+  else if (strncmp(cmd, "gateway", 7) == 0)
+  {
+    e1000->gateway_ip = IP2int(val);
+  }
+
+  char mac_str[18] = { '\0' };
+  unpack_mac(e1000->mac_addr, mac_str);
+
+  // cprintf("%d\n\n", e1000->mac_addr);
+  cprintf("mynet0\nLink encap:Ethernet  HWaddr %s\n", mac_str);
+  cprintf("inet addr:%s  Gateway:%s\n", "183.173.62.228", "183.173.63.255");
   return 0;
 }

@@ -82,6 +82,7 @@
 // /**
 // * Ethernet Device Interrupt Mast Set registers
 // */
+#define E1000_ICR       0x000C0 
 #define E1000_IMS 0x000d0
 #define E1000_IMS_TXQE 0x00000002
 #define E1000_IMS_LSC 0x00000004
@@ -89,6 +90,7 @@
 #define E1000_IMS_RXDMT0 0x00000010
 #define E1000_IMS_RXO 0x00000040
 #define E1000_IMS_RXT0 0x00000080
+#define E1000_RDTR      0x02820
 
 #define E1000_MTA 0X05200
 
@@ -217,11 +219,12 @@ struct e1000
 };
 
 int e1000_init(struct pci_func *pcif, void *driver);
+// int e1000_setmac(void *driver, uint64_t macaddr);
 //, uint8_t *mac_addr);
 
 void e1000_send(void *e1000, uint8_t *pkt, uint16_t length);
 void e1000_recv(void *e1000, uint8_t *pkt, uint16_t *length);
-void e100_intr(void);
+void e1000_intr(void);
 void udelay(unsigned int u);
 
 #endif

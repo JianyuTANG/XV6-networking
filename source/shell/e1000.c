@@ -5,6 +5,10 @@
 #include "nic.h"
 #include "memlayout.h"
 
+#define BROADCAST_MAC "FF:FF:FF:FF:FF:FF"
+
+volatile struct e1000 *e1000;
+
 static void e1000_reg_write(uint32_t reg_addr, uint32_t value, struct e1000 *the_e1000)
 {
   *(uint32_t *)(the_e1000->membase + (reg_addr)) = value;
@@ -60,11 +64,31 @@ void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
   cprintf("after while loop\n");
 }
 
-int e1000_init(struct pci_func *pcif, void *nd)
-//, uint8_t *mac_addr)
+int e1000_setmac(void *driver, uint64_t macaddr)
 {
-  struct nic_device* nd_p = (struct nic_device*)nd;
-  struct e1000 *the_e1000 = (struct e1000 *)kalloc();
+  struct e1000 *e1000 = (struct e1000 *)driver;
+  memmove(e1000->mac_addr, &macaddr, 6);
+  e1000_reg_write(E1000_RCV_RAL0, *(uint32_t *)&macaddr, e1000);
+  e1000_reg_write(E1000_RCV_RAH0, *(uint16_t *)(&macaddr+4), e1000);
+
+  // uint32_t macaddr_l = e1000_reg_read(E1000_RCV_RAL0, e1000);
+  // uint32_t macaddr_h = e1000_reg_read(E1000_RCV_RAH0, e1000);
+
+  // *(uint32_t *)e1000->mac_addr = macaddr_l;
+  // *(uint16_t *)(&e1000->mac_addr[4]) = (uint16_t)macaddr_h;
+  // char mac_str[18];
+  // unpack_mac(e1000->mac_addr, mac_str);
+  // mac_str[17] = 0;
+  // cprintf("MAC address of the e1000 device:%s\n", mac_str);
+
+  return 0;
+}
+
+int e1000_init(struct pci_func *pcif, void *nd_p)
+{
+  struct nic_device *nd = nd_p;
+  e1000 = (struct e1000 *)kalloc();
+  struct e1000 *the_e1000 = e1000;
 
   for (int i = 0; i < 6; i++)
   {
@@ -119,22 +143,18 @@ int e1000_init(struct pci_func *pcif, void *nd)
   //Read Hardware(MAC) address from the device
 
   // set IP, MAC address
+  the_e1000->gateway_ip = 0;
+  // fillbuf(the_e1000->gateway_mac_addr, 0, 0x52550a000202l, 6);
+  fillbuf(the_e1000->gateway_mac_addr, 0, pack_mac(BROADCAST_MAC), 6);
+
+  the_e1000->ip = 0;
   uint32_t macaddr_l = e1000_reg_read(E1000_RCV_RAL0, the_e1000);
   uint32_t macaddr_h = e1000_reg_read(E1000_RCV_RAH0, the_e1000);
 
   *(uint32_t *)the_e1000->mac_addr = macaddr_l;
   *(uint16_t *)(&the_e1000->mac_addr[4]) = (uint16_t)macaddr_h;
 
-  fillbuf(the_e1000->gateway_mac_addr, 0, 0x52550a000202l, 6);
-
   char mac_str[18];
-  // unpack_mac(the_e1000->gateway_mac_addr, mac_str);
-  // mac_str[17] = 0;
-  // cprintf("gateway MAC address of the e1000 device:%s\n", mac_str);
-
-  *(uint32_t *)nd_p->mac_addr = macaddr_l;
-  *(uint16_t *)(nd_p->mac_addr+4) = (uint16_t)macaddr_h;
-
   unpack_mac(the_e1000->mac_addr, mac_str);
   mac_str[17] = 0;
 
@@ -223,6 +243,9 @@ int e1000_init(struct pci_func *pcif, void *nd)
   e1000_reg_write(E1000_RCV_RAL0, 0x12005452, the_e1000);
   e1000_reg_write(E1000_RCV_RAH0, 0x5634 | 0x80000000, the_e1000);
   //e1000_reg_write(E1000_MTA,0,the_e1000);
+
+  e1000_reg_write(E1000_RDTR, 0, the_e1000);
+  e1000_reg_write(E1000_IMS, E1000_IMS_RXT0, the_e1000);
   e1000_reg_write(E1000_RDBAL, V2P(*(the_e1000->rbd)), the_e1000);
   e1000_reg_write(E1000_RDBAH, 0x00000000, the_e1000);
   e1000_reg_write(E1000_RDLEN, (E1000_RBD_SLOTS * 16), the_e1000);
@@ -259,16 +282,16 @@ int e1000_init(struct pci_func *pcif, void *nd)
   //                            E1000_IMS_LSC|
   //                            E1000_IMS_RXDMT0, the_e1000);
   //Receive control Register.
-  uint32_t rflag = 0;
-  rflag |= E1000_RCTL_EN;
-  rflag &= (~0x00000C00);
-  //rflag|=E1000_RCTL_UPE;
-  //rflag|=E1000_RCTL_LBM_MAC|E1000_RCTL_LBM_SLP|E1000_RCTL_LBM_TCVR;
-  //rflag|=E1000_RCTL_VFE;
-  rflag |= E1000_RCTL_BAM;
-  rflag |= 0x00000000;
-  rflag |= E1000_RCTL_SECRC;
-  e1000_reg_write(E1000_RCTL, rflag, the_e1000);
+  // uint32_t rflag = 0;
+  // rflag |= E1000_RCTL_EN;
+  // rflag &= (~0x00000C00);
+  // //rflag|=E1000_RCTL_UPE;
+  // //rflag|=E1000_RCTL_LBM_MAC|E1000_RCTL_LBM_SLP|E1000_RCTL_LBM_TCVR;
+  // //rflag|=E1000_RCTL_VFE;
+  // rflag |= E1000_RCTL_BAM;
+  // rflag |= 0x00000000;
+  // rflag |= E1000_RCTL_SECRC;
+  e1000_reg_write(E1000_RCTL, E1000_RCTL_EN | E1000_RCTL_SECRC | E1000_RCTL_BAM, the_e1000);
 
   //                E1000_RCTL_EN |
   //                  E1000_RCTL_BAM |
@@ -281,7 +304,7 @@ int e1000_init(struct pci_func *pcif, void *nd)
   ioapicenable(the_e1000->irq_line, 0);
   ioapicenable(the_e1000->irq_line, 1);
 
-  nd_p->driver = the_e1000;
+  nd->driver = the_e1000;
   // driver = the_e1000;
   return 0;
 }
@@ -303,4 +326,31 @@ void e1000_recv(void *driver, uint8_t *pkt, uint16_t *length)
   cprintf("ERRORS: %x\n", the_e1000->rbd[i]->errors);
   cprintf("CHECKSUM: %x\n", the_e1000->rbd[i]->checksum);
   the_e1000->rbd_tail = i;
+}
+
+void e1000_intr(void)
+{
+  // struct e1000 *e1000 = nd0->driver;
+  uint32_t icr = e1000_reg_read(E1000_ICR, e1000);
+  cprintf("get new e1000 packet:\n");
+  uint8_t *p = (uint8_t *)kalloc();
+  uint8_t *pp = p;
+  uint16_t length = 0;
+  uint8_t mask = 15;
+  e1000_recv(e1000, p, &length);
+  if (length != 0)
+  {
+    cprintf("Receive packet:\n");
+    for (int i = 0; i < length; ++i)
+    {
+      if (i % 12 == 0 && i)
+        cprintf("\n");
+      cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
+      ++p;
+    }
+    cprintf("\n\n");
+    cprintf("ip %d.%d.%d.%d is at %x:%x:%x:%x:%x:%x\n", pp[28], pp[29], pp[30], pp[31], pp[22], pp[23], pp[24], pp[25], pp[26], pp[27]);
+    // recv_LAN_frame(nd0, p, length);
+  }
+  // e1000_recv()
 }
