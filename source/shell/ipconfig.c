@@ -11,7 +11,15 @@ int main(int argc, char **argv)
         if (ipconfig(argv[1], argv[2]) < 0)
             printf(1, "ifconfig command failed.\n");
     }
+    else if (argc == 1)
+    {
+        if (ipconfig("show", "") < 0)
+            printf(1, "ifconfig command failed.\n");
+    }
     else
+    {
         printf(1, "invalid arguments.\n");
+    }
+
     exit();
 }
