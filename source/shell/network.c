@@ -19,7 +19,9 @@ struct EthernetHeader
 
 struct IPHeader
 {
-    uint8_t header[9];
+    uint8_t header1[2];
+    uint16_t TOL;
+    uint8_t header2[5];
     uint8_t protocal;
     uint16_t cksum;
     uint32_t srcip;
@@ -499,7 +501,7 @@ void recv_IP_datagram(uint8_t *data, uint len)
     {
     case PROT_UDP:
         cprintf("UDP Reply\n");
-        deliver_pkt(data + sizeof(struct IPHeader), len - sizeof(struct IPHeader), htonl(header->srcip));
+        deliver_pkt(data + sizeof(struct IPHeader), header->TOL - sizeof(struct IPHeader), htonl(header->srcip));
         break;
 
     default:
