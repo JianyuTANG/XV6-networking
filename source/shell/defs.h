@@ -72,7 +72,7 @@ int             swapwrite(struct proc *p, char *buf, uint offset, uint size);
 // network_stack.c
 void            net_rx(struct mbuf *);
 void            net_tx_udp(struct mbuf *, uint32_t, uint16_t, uint16_t);
-void            deliver_pkt(char *buf_addr, uint32_t len);
+void            deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip);
 
 // sysnet.c
 void            sockinit(void);

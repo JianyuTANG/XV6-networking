@@ -145,120 +145,6 @@ mbufq_init(struct mbufq *q)
   q->head = 0;
 }
 
-// This code is lifted from FreeBSD's ping.c, and is copyright by the Regents
-// of the University of California.
-static unsigned short
-in_cksum(const unsigned char *addr, int len)
-{
-  int nleft = len;
-  const unsigned short *w = (const unsigned short *)addr;
-  unsigned int sum = 0;
-  unsigned short answer = 0;
-
-  /*
-   * Our algorithm is simple, using a 32 bit accumulator (sum), we add
-   * sequential 16 bit words to it, and at the end, fold back all the
-   * carry bits from the top 16 bits into the lower 16 bits.
-   */
-  while (nleft > 1)  {
-    sum += *w++;
-    nleft -= 2;
-  }
-
-  /* mop up an odd byte, if necessary */
-  if (nleft == 1) {
-    *(unsigned char *)(&answer) = *(const unsigned char *)w;
-    sum += answer;
-  }
-
-  /* add back carry outs from top 16 bits to low 16 bits */
-  sum = (sum & 0xffff) + (sum >> 16);
-  sum += (sum >> 16);
-  /* guaranteed now that the lower 16 bits of sum are correct */
-
-  answer = ~sum; /* truncate to 16 bits */
-  return answer;
-}
-
-uint16_t calc_checksum(const char *buffer, int size)
-{
-  const uint16_t *buf = (const uint16_t *)buffer;
-  unsigned long cksum = 0;
-  while (size > 1)
-  {
-    cksum += *buffer++;
-    size -= 2;
-  }
-
-  if(size == 1)
-  {
-    cksum += *(const char *)buf;
-  }
-
-  cksum = (cksum >> 16) + (cksum & 0xffff);
-  cksum += (cksum >> 16);
-  return (uint16_t)(~cksum);
-}
-
-// sends an ethernet packet
-static void
-net_tx_eth(struct mbuf *m, uint16_t ethtype)
-{
-  struct eth *ethhdr;
-
-  ethhdr = mbufpushhdr(m, *ethhdr);
-  memmove(ethhdr->shost, local_mac, ETHADDR_LEN);
-  // In a real networking stack, dhost would be set to the address discovered
-  // through ARP. Because we don't support enough of the ARP protocol, set it
-  // to broadcast instead.
-  memmove(ethhdr->dhost, broadcast_mac, ETHADDR_LEN);
-  ethhdr->type = htons(ethtype);
-
-  struct nic_device *nd;
-  if (get_device("mynet0", &nd) < 0)
-  {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
-    return -1;
-  }
-  nd->send_packet(nd->driver, (uint8_t *)m->head, m->len);
-
-  // if (e1000_transmit(m)) {
-  //   mbuffree(m);
-  // }
-}
-
-// sends an IP packet
-static void
-net_tx_ip(struct mbuf *m, uint8_t proto, uint32_t dip)
-{
-  static uint16_t id = 1;
-  struct ip *iphdr;
-
-  // push the IP header
-  iphdr = mbufpushhdr(m, *iphdr);
-  memset(iphdr, 0, sizeof(*iphdr));
-
-  uint16_t TOL = htons(m->len);
-  uint16_t ID = id++;
-  uint16_t TTL = 32;
-  // uint16_t protocal = 17; //UDP protocol值是17 见 计算机网络自顶向下方法
-  uint16_t cksum = in_cksum((unsigned char *)iphdr, sizeof(*iphdr));
-  // src ip 获取方式可改善
-  uint32_t srcip = getIP("10.0.2.15");
-
-  iphdr->ip_vhl = (4 << 4) | (20 >> 2);
-  iphdr->ip_p = proto;
-  iphdr->ip_id = ID;
-  iphdr->ip_src = htonl(local_ip);
-  iphdr->ip_dst = htonl(dip);
-  iphdr->ip_len = TOL;
-  iphdr->ip_ttl = TTL;
-  iphdr->ip_sum = cksum;
-
-  // now on to the ethernet layer
-  net_tx_eth(m, ETHTYPE_IP);
-}
-
 // sends a UDP packet
 void
 net_tx_udp(struct mbuf *m, uint32_t dip,
@@ -274,7 +160,14 @@ net_tx_udp(struct mbuf *m, uint32_t dip,
   udphdr->sum = 0; // zero means no checksum is provided
 
   // now on to the IP layer
-  net_tx_ip(m, IPPROTO_UDP, dip);
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return;
+  }
+  send_IP_datagram(nd, m->head, m->len, dip, IPPROTO_UDP);
+  mbuffree(m);
 }
 
 // receives a UDP packet
@@ -312,43 +205,8 @@ fail:
   mbuffree(m);
 }
 
-// receives an IP packet
-static void
-net_rx_ip(struct mbuf *m)
-{
-  struct ip *iphdr;
-  uint16_t len;
 
-  iphdr = mbufpullhdr(m, *iphdr);
-  if (!iphdr)
-	  goto fail;
-
-  // check IP version and header len
-  if (iphdr->ip_vhl != ((4 << 4) | (20 >> 2)))
-    goto fail;
-  // validate IP checksum
-  if (in_cksum((unsigned char *)iphdr, sizeof(*iphdr)))
-    goto fail;
-  // can't support fragmented IP packets
-  if (htons(iphdr->ip_off) != 0)
-    goto fail;
-  // is the packet addressed to us?
-  if (htonl(iphdr->ip_dst) != local_ip)
-    goto fail;
-  // can only support UDP
-  if (iphdr->ip_p != IPPROTO_UDP)
-    goto fail;
-
-  len = ntohs(iphdr->ip_len) - sizeof(*iphdr);
-  net_rx_udp(m, len, iphdr);
-  return;
-
-fail:
-  mbuffree(m);
-}
-
-
-void deliver_pkt(char *buf_addr, uint32_t len)
+void deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip)
 {
   struct mbuf *m;
   m = mbufalloc(MBUF_DEFAULT_HEADROOM);
