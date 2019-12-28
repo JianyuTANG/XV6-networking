@@ -360,7 +360,7 @@ void e1000_intr(void)
     }
     cprintf("\n\n");
     cprintf("ip %d.%d.%d.%d is at %x:%x:%x:%x:%x:%x\n", pp[28], pp[29], pp[30], pp[31], pp[22], pp[23], pp[24], pp[25], pp[26], pp[27]);
-    // recv_LAN_frame(nd, p, length);
+    recv_Ethernet_frame(nd, pp, length);
   }
 
   // e1000_recv()

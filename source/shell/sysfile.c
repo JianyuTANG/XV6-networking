@@ -725,39 +725,6 @@ int sys_arp(void)
     cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
     return -1;
   }
-
-
-  // struct e1000 *e1000p = (struct e1000 *)nd->driver;
-  // uint8_t *p = (uint8_t *)kalloc();
-  // uint8_t *pp = p;
-  // uint16_t length = 0;
-  // uint16_t cnt = 0;
-  // while (1)
-  // {
-  //   if (cnt == 0xffff)
-  //   {
-  //     cprintf("no reply\n");
-  //     break;
-  //   }
-  //   ++cnt;
-
-  //   uint8_t mask = 15;
-  //   e1000_recv(e1000p, p, &length);
-  //   if (length != 0)
-  //   {
-  //     cprintf("Receive packet:\n");
-  //     for (int i = 0; i < length; ++i)
-  //     {
-  //       if (i % 12 == 0 && i)
-  //         cprintf("\n");
-  //       cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
-  //       ++p;
-  //     }
-  //     cprintf("\n\n");
-  //     cprintf("ip %d.%d.%d.%d is at %x:%x:%x:%x:%x:%x\n", pp[28], pp[29], pp[30], pp[31], pp[22], pp[23], pp[24], pp[25], pp[26], pp[27]);
-  //     break;
-  //   }
-  // }
   return 0;
 }
 

@@ -9,7 +9,7 @@ int send_arpRequest(struct nic_device *nd, char *ipAddr);
 
 int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t code);
 
-void recv_LAN_frame(struct nic_device *nd, uint8_t *data, int data_len);
+void recv_Ethernet_frame(struct nic_device *nd, uint8_t *data, int data_len);
 
 // int create_eth_arp_frame(uint8_t* smac, char* ipAddr, struct ethr_hdr *eth);
 void unpack_mac(uchar* mac, char* mac_str);

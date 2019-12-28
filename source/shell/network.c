@@ -4,11 +4,18 @@
 #include "network.h"
 #include "e1000.h"
 
-#define BROADCAST_MAC "FF:FF:FF:FF:FF:FF"
+#define BROADCAST_MAC 0xFFFFFFFFFFFF
 #define PROT_IP 0x0800
 #define PROT_ARP 0x0806
 
 #define PROT_ICMP 1
+
+struct EthernetHeader
+{
+    uint8_t tarmac[6];
+    uint8_t srcmac[6];
+    uint16_t protocal;
+};
 
 struct ICMPHeader
 {
@@ -19,7 +26,7 @@ struct ICMPHeader
     uint16_t seq;
 };
 
-struct EthrHeader
+struct ARPHeader
 {
     uint16_t hwtype;
     uint16_t protype;
@@ -30,7 +37,7 @@ struct EthrHeader
     // uint8_t arp_smac[6];
     // uint32_t sip;
     // uint8_t arp_dmac[6];
-    // uint16_t dip; //This should be 4 bytes. But alignment issues are creating a padding b/w arp_dmac and dip if dip is kept 4 bytes.
+    // uint32_t dip;
 };
 
 static uint8_t fillbuf(uint8_t *buf, uint8_t k, uint64_t num, uint8_t len)
@@ -253,51 +260,7 @@ void parse_ip(uint ip, char *ip_str)
     ip_str[c - 1] = '\0';
 }
 
-// ethernet packet arrived; parse and get the MAC address
-// void parse_arp_reply(struct ethr_hdr eth) {
-// 	if (eth.ethr_type != 0x0806) {
-// 		cprintf("Not an ARP packet");
-// 		return;
-// 	}
-
-// 	if (eth.protype != 0x0800) {
-// 		cprintf("Not IPV4 protocol\n");
-// 		return;
-// 	}
-
-// 	if (eth.opcode != 2) {
-// 		cprintf("Not an ARP reply\n");
-// 		return;
-// 	}
-
-// 	char* my_mac = (char*)"FF:FF:FF:FF:FF:FF";
-// 	char dst_mac[18];
-
-// 	unpack_mac(eth.arp_dmac, dst_mac);
-
-// 	if (util_strcmp((const char*)my_mac, (const char*)dst_mac)) {
-// 		cprintf("Not the intended recipient\n");
-// 		return;
-// 	}
-
-// 	//parse sip; it should be equal to the one we sent
-// 	char* my_ip = (char*)"255.255.255.255";
-// 	char dst_ip[16];
-
-// 	parse_ip(eth.dip, dst_ip);
-
-// 	if (util_strcmp((const char*)my_ip, (const char*)dst_ip)) {
-// 	    cprintf("Not the intended recipient\n");
-// 	    return;
-// 	}
-
-// 	char mac[18];
-// 	unpack_mac(eth.arp_smac, mac);
-
-// 	cprintf((char*)mac);
-// }
-
-int send_LAN_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uint64_t tarsrc, uint16_t protocal)
+int send_Ethernet_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uint8_t* tarmac, uint16_t protocal)
 {
     struct e1000 *the_e1000 = (struct e1000 *)nd->driver;
     uint8_t *buffer = (uint8_t *)kalloc();
@@ -307,7 +270,8 @@ int send_LAN_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uin
     //mac header
     uint8_t *srcmac = the_e1000->mac_addr;
 
-    pos = fillbuf(buffer, pos, tarsrc, 6);
+    // pos = fillbuf(buffer, pos, tarmac, 6);
+    pos += memcpy(buffer, tarmac, 6);
     pos += memcpy(buffer + pos, srcmac, 6);
     // pos = fillbuf(buffer, pos, srcmac, 6);
     pos = fillbuf(buffer, pos, protocal, 2);
@@ -321,6 +285,7 @@ int send_LAN_frame(struct nic_device *nd, uint8_t *payload, int payload_len, uin
 
 int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, char *str_tarip, uint16_t protocal)
 {
+    struct e1000 *e1000 = (struct e1000 *)nd->driver;
     static uint16_t id = 1;
 
     uint8_t *buffer = (uint8_t *)kalloc();
@@ -349,7 +314,7 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, c
 
     uint16_t cksum = 0; //calc_checksum((uint16_t*)piphdr,5);
 
-    uint32_t srcip = IP2int("10.0.2.15");
+    uint32_t srcip = e1000->ip;
 
     uint32_t tarip = IP2int(str_tarip);
     posiphdrcks = pos;
@@ -365,8 +330,10 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, c
     // fillbuf(buffer, posiphdrcks, cksum, 2);
 
     // uint16_t macprotocal = 0x0800;
+    // uint64_t dmac;
+    // memmove(&dmac, e1000->gateway_mac_addr, 6);
 
-    int res = send_LAN_frame(nd, buffer, pos, 0x52550a000202l, PROT_IP);
+    int res = send_Ethernet_frame(nd, buffer, pos, e1000->gateway_mac_addr, PROT_IP);
 
     kfree(buffer);
 
@@ -375,13 +342,12 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, c
 
 int send_arpRequest(struct nic_device *nd, char *ipAddr)
 {
-
     struct e1000 *the_e1000 = (struct e1000 *)nd->driver;
     cprintf("Create ARP frame\n");
-    struct EthrHeader eth;
+    struct ARPHeader eth;
 
-    char *sdmac = BROADCAST_MAC;
-    uint64_t dmac = pack_mac(sdmac);
+    // char *sdmac = BROADCAST_MAC;
+    uint64_t dmac = BROADCAST_MAC;
 
     /** ARP packet filling **/
     eth.hwtype = htons(1);
@@ -399,7 +365,44 @@ int send_arpRequest(struct nic_device *nd, char *ipAddr)
     *(uint32_t *)(eth.data + 6) = htonl(IP2int("10.0.2.15"));
     *(uint32_t *)(eth.data + 16) = htonl(IP2int(ipAddr));
 
-    return send_LAN_frame(nd, &eth, sizeof(struct EthrHeader), dmac, PROT_ARP);
+    return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), &dmac, PROT_ARP);
+}
+
+int send_arpReply(struct nic_device *nd, struct ARPHeader *request)
+{
+    struct e1000 *e1000 = (struct e1000 *)nd->driver;
+
+    uint32_t tar_ip = htonl(*(uint32_t *)(request->data + 16));
+    if (tar_ip != e1000->ip)
+    {
+        cprintf("not my ip:%x\n", tar_ip);
+        return;
+    }
+
+    uint8_t* dmac = request->data;
+    // memmove(&dmac, request->data + 10, 6);
+
+    if (tar_ip == e1000->gateway_ip)
+        memmove(e1000->gateway_mac_addr, &dmac, 6);
+
+    cprintf("Create ARP frame\n");
+    struct ARPHeader eth;
+
+    /** ARP packet filling **/
+    eth.hwtype = htons(1);
+    eth.protype = htons(0x0800);
+
+    eth.hwsize = 0x06;
+    eth.prosize = 0x04;
+
+    //arp request
+    eth.opcode = htons(2);
+
+    memmove(eth.data, e1000->mac_addr, 6);
+    *(uint32_t *)(eth.data + 6) = htonl(e1000->ip);
+    memmove(eth.data + 10, request->data, 10);
+
+    return send_Ethernet_frame(nd, &eth, sizeof(struct ARPHeader), dmac, PROT_ARP);
 }
 
 int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t code)
@@ -422,7 +425,80 @@ int send_icmpRequest(struct nic_device *nd, char *tarips, uint8_t type, uint8_t 
     return send_IP_datagram(nd, &hdr, sizeof(struct ICMPHeader), tarips, PROT_ICMP);
 }
 
-void recv_LAN_frame(struct nic_device *nd, uint8_t *data, int data_len)
+void recv_ARP(struct nic_device *nd, struct ARPHeader *data)
 {
+    if (htons(data->protype) != 0x0800)
+    {
+        cprintf("Not IPV4 protocol:%x\n", data->protype);
+        return;
+    }
 
+    switch (htons(data->opcode))
+    {
+    case 1:
+        cprintf("ARP Request\n");
+        send_arpReply(nd, data);
+        break;
+
+    case 2:
+        cprintf("ARP Reply\n");
+        break;
+
+    default:
+        cprintf("Not an ARP reply: %x\n", data->opcode);
+        return;
+    }
+
+    // char* my_mac = (char*)"FF:FF:FF:FF:FF:FF";
+    // char dst_mac[18];
+
+    // unpack_mac(eth.arp_dmac, dst_mac);
+
+    // if (util_strcmp((const char*)my_mac, (const char*)dst_mac)) {
+    // 	cprintf("Not the intended recipient\n");
+    // 	return;
+    // }
+
+    // //parse sip; it should be equal to the one we sent
+    // char* my_ip = (char*)"255.255.255.255";
+    // char dst_ip[16];
+
+    // parse_ip(eth.dip, dst_ip);
+
+    // if (util_strcmp((const char*)my_ip, (const char*)dst_ip)) {
+    //     cprintf("Not the intended recipient\n");
+    //     return;
+    // }
+
+    // char mac[18];
+    // unpack_mac(eth.arp_smac, mac);
+
+    // cprintf((char*)mac);
+}
+
+void recv_Ethernet_frame(struct nic_device *nd, uint8_t *frame, int frame_len)
+{
+    struct EthernetHeader *header = frame;
+    struct e1000 *e1000 = nd->driver;
+    uint64_t broadcast = BROADCAST_MAC;
+    if (memcmp(header->tarmac, e1000->mac_addr, 6) && memcmp(header->tarmac, &broadcast, 6))
+    {
+        cprintf("invalid target mac address: %x", *(uint64_t *)(header->tarmac));
+        return;
+    }
+
+    switch (htons(header->protocal))
+    {
+    case PROT_IP:
+        cprintf("IP protocal:%x", header->protocal);
+        break;
+
+    case PROT_ARP:
+        recv_ARP(nd, frame + sizeof(struct EthernetHeader));
+        break;
+
+    default:
+        cprintf("unsupported protocal:%x\n", header->protocal);
+        break;
+    }
 }
