@@ -80,7 +80,7 @@ trap(struct trapframe *tf)
     
   case T_IRQ0 + IRQ_ETH:
     cprintf("NIC Interrupted!\n");
-    //e100_intr();
+    //e1000_intr();
     lapiceoi();
     break;
   

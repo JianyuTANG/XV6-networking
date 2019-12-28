@@ -226,12 +226,12 @@ void udelay(unsigned int u)
 
 
    //enable interrupts
-   // e1000_reg_write(E1000_IMS, E1000_IMS_RXSEQ |
-   //                            E1000_IMS_RXO |
-   //                            E1000_IMS_RXT0|
-   //                            E1000_IMS_TXQE|
-   //                            E1000_IMS_LSC|
-   //                            E1000_IMS_RXDMT0, the_e1000);
+   e1000_reg_write(E1000_IMS, E1000_IMS_RXSEQ |
+                              E1000_IMS_RXO |
+                              E1000_IMS_RXT0|
+                              E1000_IMS_TXQE|
+                              E1000_IMS_LSC|
+                              E1000_IMS_RXDMT0, the_e1000);
    //Receive control Register.
    uint32_t rflag=0;
    rflag|=E1000_RCTL_EN;

@@ -152,9 +152,6 @@ int sockread(struct file *f, char *addr, int n)
 // called by protocol handler layer to deliver UDP packets
 void sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport)
 {
-  //
-  // Your code here.
-  //
   // Find the socket that handles this mbuf and deliver it, waking
   // any sleeping reader. Free the mbuf if there are no sockets
   // registered to handle it.
