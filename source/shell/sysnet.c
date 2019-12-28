@@ -7,7 +7,7 @@
 #include "memlayout.h"
 #include "x86.h"
 #include "spinlock.h"
-#include "network_stack.h"
+#include "network_transmission.h"
 #include "defs.h"
 #include "fs.h"
 #include "sleeplock.h"
@@ -133,7 +133,7 @@ void sockclose(struct file *f)
   
   kfree((char *)s);
   f->sock = 0;
-  return 0;
+  return;
 }
 
 int sockread(struct file *f, char *addr, int n)
