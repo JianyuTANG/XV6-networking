@@ -180,26 +180,6 @@ in_cksum(const unsigned char *addr, int len)
   return answer;
 }
 
-uint16_t calc_checksum(const char *buffer, int size)
-{
-  const uint16_t *buf = (const uint16_t *)buffer;
-  unsigned long cksum = 0;
-  while (size > 1)
-  {
-    cksum += *buffer++;
-    size -= 2;
-  }
-
-  if(size == 1)
-  {
-    cksum += *(const char *)buf;
-  }
-
-  cksum = (cksum >> 16) + (cksum & 0xffff);
-  cksum += (cksum >> 16);
-  return (uint16_t)(~cksum);
-}
-
 // sends an ethernet packet
 static void
 net_tx_eth(struct mbuf *m, uint16_t ethtype)
