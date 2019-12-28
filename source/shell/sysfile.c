@@ -924,8 +924,8 @@ int sys_ipconfig(void)
     return -1;
   }
 
-  cprintf("cmd:%s\n\n", cmd);
-  cprintf("ip:%s\n\n", val);
+  // cprintf("cmd:%s\n\n", cmd);
+  // cprintf("ip:%s\n\n", val);
 
   struct e1000 *e1000 = (struct e1000 *)(nd->driver);
 
@@ -941,9 +941,14 @@ int sys_ipconfig(void)
   char mac_str[18] = { '\0' };
   unpack_mac(e1000->mac_addr, mac_str);
 
-  // cprintf("%d\n\n", e1000->mac_addr);
+  cprintf("%x\n\n", e1000->ip);
+  char inet[24] = {0};
+  parse_ip(e1000->ip, inet);
+  char gateway[24] = {0};
+  parse_ip(e1000->gateway_ip, gateway);
+
   cprintf("mynet0\nLink encap:Ethernet  HWaddr %s\n", mac_str);
-  cprintf("inet addr:%s  Gateway:%s\n", "183.173.62.228", "183.173.63.255");
+  cprintf("inet addr:%s  Gateway:%s\n", inet, gateway);
   return 0;
 }
 int
