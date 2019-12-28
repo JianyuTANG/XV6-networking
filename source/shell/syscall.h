@@ -25,6 +25,7 @@
 #define SYS_checknic  53
 #define SYS_icmptest  54
 #define SYS_ipconfig  55
+#define SYS_connect   56
 
 #define SYS_nfpgs     32
 #define SYS_writeshm  33

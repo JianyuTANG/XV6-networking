@@ -36,6 +36,9 @@ OBJS = \
 	nic.o\
 	e1000.o\
 	util.o\
+	network_stack.o\
+	sysnet.o\
+	
 
 # arp_frame.o\
 

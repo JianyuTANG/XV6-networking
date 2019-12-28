@@ -33,6 +33,7 @@ int arp(char*);
 int checknic(int,int);
 int icmptest(int,int);
 int ipconfig(char* cmd, char* val);
+int connect(uint32_t, uint16_t, uint16_t);
 
 int reparent(int,int);
 void jobs (void);

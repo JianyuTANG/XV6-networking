@@ -1,4 +1,5 @@
-source/shell/lua-xv6/*.d
+.vscode\*
 source/shell/qemu.pcap
 
 debug
+source/shell/.vscode/settings.json
