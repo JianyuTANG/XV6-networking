@@ -31,11 +31,16 @@ OBJS = \
 	sysconsole.o\
 	vm.o\
 	arp.o\
-	arp_frame.o\
+	network.o\
 	pci.o\
 	nic.o\
 	e1000.o\
 	util.o\
+	network_transmission.o\
+	sysnet.o\
+	
+
+# arp_frame.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -245,6 +250,7 @@ UPROGS=\
 	_timetest\
 	_stdtests\
 	_icmptest\
+	_ipconfig\
 
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua

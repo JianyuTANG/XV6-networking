@@ -69,6 +69,22 @@ int             swapdealloc(struct proc *p);
 int             swapread(struct proc *p, char *buf, uint offset, uint size);
 int             swapwrite(struct proc *p, char *buf, uint offset, uint size);
 
+// network_transmission.c
+void            deliver_pkt(char *buf_addr, uint32_t len, uint32_t source_ip);
+
+// network.c
+struct nic_device;
+
+int             send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, uint32_t tarip, uint16_t protocal);
+
+// sysnet.c
+void            sockinit(void);
+int             sockalloc(struct file **, uint32_t, uint16_t, uint16_t);
+void            sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport);
+void            socksendudp(struct file *, int , char *);
+void            sockclose(struct file *f);
+int             sockread(struct file *f, char *addr, int n);
+
 // ide.c
 void            ideinit(void);
 void            ideintr(void);
@@ -231,7 +247,7 @@ void            showproc(void);
 int             loaduvm_from_kernel(pde_t *, char *, char *, char *, uint, uint);
 
 // arp.c
-int             send_arpRequest(char* interface, char* ipAddr, char* arpResp);
+// int             send_arpRequest(char* interface, char* ipAddr, char* arpResp);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
