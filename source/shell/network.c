@@ -76,7 +76,7 @@ uint16_t calc_checksum(uint16_t *buffer, int size)
         cksum += *buffer++;
         --size;
     }
-    
+
     cksum = (cksum >> 16) + (cksum & 0xffff);
     cksum += (cksum >> 16);
     return (uint16_t)(~cksum);
@@ -299,9 +299,9 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     uint8_t pos = 0;
 
     //ip header
-    uint16_t vrs = 4;
-    uint16_t IHL = 5;
-    uint16_t TOS = 0;
+    uint8_t vrs = 4;
+    uint8_t IHL = 5;
+    uint8_t TOS = 0;
     uint16_t TOL = payload_len + sizeof(struct IPHeader);
     uint16_t ID = id++;
     uint16_t flag = 0;
@@ -317,7 +317,7 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
     pos = fillbuf(buffer, pos, TTL, 1);
     pos = fillbuf(buffer, pos, protocal, 1);
 
-    uint16_t cksum = 0; //calc_checksum((uint16_t*)piphdr,5);
+    uint16_t cksum = 0;
 
     uint32_t srcip = e1000->ip;
 
@@ -465,7 +465,7 @@ void recv_IP_datagram(uint8_t *data, uint len)
     struct IPHeader *header = data;
     uint cksum = htons(header->cksum);
     // header->cksum = 0;
-    if (calc_checksum(data, len) != cksum)
+    if (calc_checksum(data, 10) != cksum)
     {
         cprintf("ERROR:recv_IP_datagram: invalid checksum.\n");
         return;
