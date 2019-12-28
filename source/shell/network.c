@@ -515,6 +515,7 @@ void recv_IP_datagram(uint8_t *data, uint len)
     {
     case PROT_UDP:
         cprintf("UDP Reply\n");
+        deliver_pkt((char *)(data + 20), len - 20, header->srcip);
         break;
 
     default:
