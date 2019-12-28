@@ -150,7 +150,7 @@ int sockread(struct file *f, char *addr, int n)
     {
       len = n;
     }
-    char *buf = cur->buf;
+    char *buf = cur->head;
     for(int i = 0; i < len; i++)
     {
       addr[i] = buf[i];
