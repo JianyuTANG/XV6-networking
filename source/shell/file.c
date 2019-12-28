@@ -115,7 +115,8 @@ fileread(struct file *f, char *addr, int n)
   }
   if(f->type == FD_SOCK)
   {
-
+    r = sockread(f, addr, n);
+    return r;
   }
   panic("fileread");
 }
@@ -168,6 +169,5 @@ filewrite(struct file *f, char *addr, int n)
   }
   
   panic("filewrite");
-  cprintf("finish wirte!");
 }
 

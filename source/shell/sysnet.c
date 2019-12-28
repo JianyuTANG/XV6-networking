@@ -126,6 +126,29 @@ void sockclose(struct file *f)
   return 0;
 }
 
+int sockread(struct file *f, char *addr, int n)
+{
+  // do something
+  struct sock *s = f->sock;
+  struct mbufq rxq = s->rxq;
+  struct mbuf *cur = mbufq_pophead(&rxq);
+  if(cur)
+  {
+    int len = cur->len;
+    if(len > n)
+    {
+      len = n;
+    }
+    char *buf = cur->buf;
+    for(int i = 0; i < len; i++)
+    {
+      addr[i] = buf[i];
+    }
+    return len;
+  }
+  return -1;
+}
+
 // called by protocol handler layer to deliver UDP packets
 void sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport)
 {
@@ -136,6 +159,22 @@ void sockrecvudp(struct mbuf *m, uint32_t raddr, uint16_t lport, uint16_t rport)
   // any sleeping reader. Free the mbuf if there are no sockets
   // registered to handle it.
   //
+  struct sock* pos;
   
+  acquire(&lock);
+  pos = sockets;
+  while (pos) {
+    if (pos->raddr == raddr &&
+        pos->lport == lport &&
+	      pos->rport == rport) 
+    {
+      // add buffer to the queue
+      mbufq_pushtail(&(pos->rxq), m);
+      release(&lock);
+      return;
+    }
+    pos = pos->next;
+  }
+  release(&lock);  
   mbuffree(m);
 }

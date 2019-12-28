@@ -260,20 +260,20 @@ void udelay(unsigned int u)
    return 0;
  }
 
- void e1000_recv(void *driver, uint8_t* pkt, uint16_t *length) {
-   struct e1000 *the_e1000=(struct e1000*)driver;
-   int i=(the_e1000->rbd_tail+1)%E1000_RBD_SLOTS;
-   if(!(the_e1000->rbd[i]->status&E1000_RXD_STAT_DD )||!(the_e1000->rbd[i]->status&E1000_RXD_STAT_EOP))
+ void e1000_recv(void *driver, uint8_t *pkt, uint16_t *length) {
+   struct e1000 *the_e1000 = (struct e1000 *)driver;
+   int i = (the_e1000->rbd_tail + 1) % E1000_RBD_SLOTS;
+   if(!(the_e1000->rbd[i]->status & E1000_RXD_STAT_DD ) || !(the_e1000->rbd[i]->status & E1000_RXD_STAT_EOP))
    {
-     *length=0;
+     *length = 0;
      return;
    }
-   *length=the_e1000->rbd[i]->length;
+   *length = the_e1000->rbd[i]->length;
    //pkt=&(the_e1000->rx_buf[i]->buf[0]);
    //memmove(pkt,(uint8_t*)P2V(the_e1000->rbd[i]->addr_l),(uint)(*length));
-   memmove(pkt,P2V((uint8_t*)(uint32_t)(the_e1000->rbd[i]->addr)),(uint)(*length));
-   the_e1000->rbd[i]->status=0;
-   cprintf("ERRORS: %x\n",the_e1000->rbd[i]->errors);
-   cprintf("CHECKSUM: %x\n",the_e1000->rbd[i]->checksum);
-   the_e1000->rbd_tail=i;
+   memmove(pkt, P2V((uint8_t *)(uint32_t)(the_e1000->rbd[i]->addr)), (uint)(*length));
+   the_e1000->rbd[i]->status = 0;
+   cprintf("ERRORS: %x\n", the_e1000->rbd[i]->errors);
+   cprintf("CHECKSUM: %x\n", the_e1000->rbd[i]->checksum);
+   the_e1000->rbd_tail = i;
  }
