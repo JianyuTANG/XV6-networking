@@ -30,7 +30,6 @@ OBJS = \
 	var_in_kernel.o\
 	sysconsole.o\
 	vm.o\
-	arp.o\
 	network.o\
 	pci.o\
 	nic.o\
