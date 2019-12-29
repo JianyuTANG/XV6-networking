@@ -33,6 +33,7 @@ SYSCALL(uptime)
 SYSCALL(arp)
 SYSCALL(ipconfig)
 SYSCALL(connect)
+SYSCALL(ping)
 
 SYSCALL(reparent)
 SYSCALL(getstate)

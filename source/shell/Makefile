@@ -37,7 +37,6 @@ OBJS = \
 	util.o\
 	network_transmission.o\
 	sysnet.o\
-	
 
 # arp_frame.o\
 

@@ -684,6 +684,32 @@ bad:
   return -1;
 }
 
+// int sys_arp(void)
+// {
+//   char *ipAddr;
+
+//   if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+//   {
+//     cprintf("ERROR:sys_createARP:Failed to fetch arguments");
+//     return -1;
+//   }
+
+//   struct nic_device *nd;
+//   if (get_device("mynet0", &nd) < 0)
+//   {
+//     cprintf("ERROR:send_arpRequest:Device not loaded\n");
+//     return -1;
+//   }
+
+//   // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+//   if (send_arpRequest(nd, ipAddr) < 0)
+//   {
+//     cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
+//     return -1;
+//   }
+//   return 0;
+// }
+
 static uint32_t e1000_reg_read(uint32_t reg_addr, struct e1000 *the_e1000)
 {
   uint32_t value = *(uint32_t *)(the_e1000->membase + reg_addr);
@@ -859,7 +885,7 @@ int sys_ipconfig(void)
     e1000->gateway_ip = IP2int(val);
   }
 
-  char mac_str[18] = { '\0' };
+  char mac_str[18] = {'\0'};
   unpack_mac(e1000->mac_addr, mac_str);
 
   cprintf("%x\n\n", e1000->ip);
@@ -872,8 +898,7 @@ int sys_ipconfig(void)
   cprintf("inet addr:%s  Gateway:%s\n", inet, gateway);
   return 0;
 }
-int
-sys_connect(void)
+int sys_connect(void)
 {
   struct file *f;
   int fd;
@@ -881,22 +906,40 @@ sys_connect(void)
   uint32_t rport;
   uint32_t lport;
 
-  if (argint(0, (int*)&raddr) < 0 ||
-      argint(1, (int*)&lport) < 0 ||
-      argint(2, (int*)&rport) < 0) {
+  if (argint(0, (int *)&raddr) < 0 ||
+      argint(1, (int *)&lport) < 0 ||
+      argint(2, (int *)&rport) < 0)
+  {
     return -1;
   }
 
-  if(sockalloc(&f, raddr, lport, rport) < 0)
+  if (sockalloc(&f, raddr, lport, rport) < 0)
     return -1;
-  if((fd=fdalloc(f)) < 0){
+  if ((fd = fdalloc(f)) < 0)
+  {
     fileclose(f);
     return -1;
   }
 
   return fd;
 }
-
+int sys_ping(char *dest_)
+{
+  // char *_dest;
+  // if (argstr(0, &_dest) < 0)
+  // {
+  //   cprintf("ERROR:sys_ping:Failed to fetch arguments");
+  //   return -1;
+  // }
+  // cprintf(_dest);
+  // uint16_t src_port=35536;
+  // uint16_t dest_port=4333;
+  // if(ping_executor(_dest,src_port,dest_port,4)!=0)
+  // {
+  //   return -1;
+  // }
+  return 0;
+}
 
 int sys_arp(void)
 {
