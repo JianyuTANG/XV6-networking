@@ -250,7 +250,6 @@ UPROGS=\
 	_arptest\
 	_ping\
 
-
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua
 
 fs.img: mkfs README $(UPROGS) $(LUA_SCRIPTS)
