@@ -1,9 +1,6 @@
 #include "types.h"
-#include "network_transmission.h"
 #include "stat.h"
 #include "user.h"
-#include "nic.h"
-#include "e1000.h"
 #include "time.h"
 
 uint32_t ip2int(char *sIP)
@@ -25,10 +22,10 @@ uint32_t ip2int(char *sIP)
 
 int main(int argc, char **argv)
 {
-    if (ping(argv[1]) < 0)
-    {
-        printf(1, "ifconfig command failed");
-    }
+    // if (ping(argv[1]) < 0)
+    // {
+    //     printf(1, "ifconfig command failed");
+    // }
     int fd;
     char obuf[13] = "hello world!";
     uint32_t dst = ip2int(argv[1]);

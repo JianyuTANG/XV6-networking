@@ -123,7 +123,6 @@ extern int sys_uptime(void);
 extern int sys_arp(void);
 extern int sys_ipconfig(void);
 extern int sys_connect(void);
-extern int sys_ping(char*);
 
 extern int sys_reparent(void);
 extern int sys_getstate(void);
