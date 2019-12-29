@@ -24,7 +24,11 @@ uint32_t ip2int(char *sIP)
 }
 
 int main(int argc, char **argv)
-{
+{   
+    if(argc==1){
+        printf(1,"Uasge: ping target_name \n");
+        return 0;
+    }
     if (ping(argv[1]) < 0)
     {
         printf(1, "ifconfig command failed");
