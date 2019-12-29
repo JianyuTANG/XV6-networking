@@ -15,6 +15,7 @@ typedef int clock_t;
 typedef int time_t;
 
 
+
 #define CLOCK_PER_SECOND 1000
 
 clock_t clock();

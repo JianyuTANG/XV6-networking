@@ -60,7 +60,9 @@ printf(int fd, char *fmt, ...)
       } else if(c == 'x' || c == 'p'){
         printint(fd, *ap, 16, 0);
         ap++;
-      } else if(c == 's'){
+      } else if(c=='f'){
+        
+      }else if(c == 's'){
         s = (char*)*ap;
         ap++;
         if(s == 0)

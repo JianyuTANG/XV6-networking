@@ -24,6 +24,7 @@
 #define SYS_arp       22
 #define SYS_ipconfig  55
 #define SYS_connect   56
+#define SYS_ping      57
 
 #define SYS_nfpgs     32
 #define SYS_writeshm  33
