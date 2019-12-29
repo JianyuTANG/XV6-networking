@@ -24,43 +24,53 @@ uint32_t ip2int(char *sIP)
 
 int main(int argc, char **argv)
 {
-    if(ping(argv[1]) < 0){
+    if (ping(argv[1]) < 0)
+    {
         printf(1, "ifconfig command failed");
     }
     int fd;
-  char obuf[13] = "hello world!";
-  uint32_t dst=ip2int(argv[1]);
-  uint16_t sport=35545;
-  uint16_t dport=12000;
-  
-  if((fd = connect(dst, sport, dport)) < 0){
-    printf(2, "ping: connect() failed\n");
-    return -1;
-  }
-  // 效仿linux下ping，一直发送
+    char obuf[13] = "hello world!";
+    uint32_t dst = ip2int(argv[1]);
+    uint16_t sport = 35545;
+    uint16_t dport = 12000;
+    int icmp_seq = 0;
 
-//   for(int i = 0; i < attempts; i++) {
-    if(write(fd, obuf, sizeof(obuf)) < 0){
-      printf(2, "ping: send() failed\n");
-    //   exit(1);
-    return -1;
+    if ((fd = connect(dst, sport, dport)) < 0)
+    {
+        printf(2, "ping: connect() failed\n");
+        return -1;
     }
-//   }
+    // 效仿linux下ping，一直发送
+    char ibuf[128];
+    memset(&ibuf, 0, sizeof(ibuf));
+    printf(1, "Ping %s", argv[1]);
+    while (1)
+    {
+        sleep(50);
+        if (write(fd, obuf, sizeof(obuf)) < 0)
+        {
+            printf(2, "ping: send() failed\n");
+            //   exit(1);
+            return -1;
+        }
 
-  char ibuf[128];
-  int cc = read(fd, ibuf, sizeof(ibuf));
-  printf(1,"From %s: %s",argv[1],ibuf);
-  if(cc < 0){
-    printf(2, "ping: recv() failed\n");
-    // exit(1);
-    return -1;
-  }
+        int cc = read(fd, ibuf, sizeof(ibuf));
+        icmp_seq += 1;
+        printf(1, "From %s: icmp_seq=%d", argv[1], icmp_seq);
+        if (cc < 0)
+        {
+            printf(2, "ping: recv() failed\n");
+            // exit(1);
+            return -1;
+        }
 
-  if (strcmp(obuf, ibuf) || cc != sizeof(obuf)){
-    printf(2, "ping didn't receive correct payload\n");
-    // exit(1);
-    return -1;
-  }
+        if (strcmp(obuf, ibuf) || cc != sizeof(obuf))
+        {
+            printf(2, "ping didn't receive correct payload\n");
+            // exit(1);
+            return -1;
+        }
+    }
 
     close(fd);
     return 0;
