@@ -163,7 +163,7 @@ net_tx_udp(struct mbuf *m, uint32_t dip,
   struct nic_device *nd;
   if (get_device("mynet0", &nd) < 0)
   {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    cprintf("ERROR:send_udp_packet:Device not loaded\n");
     return;
   }
   send_IP_datagram(nd, m->head, m->len, dip, IPPROTO_UDP);
