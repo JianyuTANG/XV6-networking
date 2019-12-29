@@ -197,7 +197,6 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_arptest\
 	_cat\
 	_echo\
 	_forktest\
@@ -248,6 +247,7 @@ UPROGS=\
 	_timetest\
 	_stdtests\
 	_ipconfig\
+	_sockettest\
 
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua
