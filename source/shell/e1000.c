@@ -35,7 +35,7 @@ void udelay(unsigned int u)
 
 void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
 {
-  cprintf("e1000 send:\n");
+  // cprintf("e1000 send:\n");
   int k;
   // for (k = 0; k != length; ++k)
   // {

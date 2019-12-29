@@ -374,7 +374,7 @@ int send_IP_datagram(struct nic_device *nd, uint8_t *payload, int payload_len, u
 int send_arpRequest(struct nic_device *nd, char *ipAddr)
 {
     struct e1000 *the_e1000 = (struct e1000 *)nd->driver;
-    cprintf("Create ARP frame\n");
+    // cprintf("Create ARP frame\n");
     struct ARPHeader eth;
 
     // char *sdmac = BROADCAST_MAC;
@@ -500,7 +500,7 @@ void recv_IP_datagram(uint8_t *data, uint len)
     switch (header->protocal)
     {
     case PROT_UDP:
-        cprintf("UDP Reply\n");
+        // cprintf("UDP Reply\n");
         deliver_pkt(data + sizeof(struct IPHeader), header->TOL - sizeof(struct IPHeader), htonl(header->srcip));
         break;
 

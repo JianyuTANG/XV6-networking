@@ -78,7 +78,7 @@ void trap(struct trapframe *tf)
     break;
 
   case T_IRQ0 + IRQ_ETH:
-    cprintf("NIC Interrupted!\n");
+    // cprintf("NIC Interrupted!\n");
     e1000_intr();
     lapiceoi();
     break;
