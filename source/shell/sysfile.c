@@ -684,31 +684,31 @@ bad:
   return -1;
 }
 
-int sys_arp(void)
-{
-  char *ipAddr;
+// int sys_arp(void)
+// {
+//   char *ipAddr;
 
-  if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
-  {
-    cprintf("ERROR:sys_createARP:Failed to fetch arguments");
-    return -1;
-  }
+//   if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+//   {
+//     cprintf("ERROR:sys_createARP:Failed to fetch arguments");
+//     return -1;
+//   }
 
-  struct nic_device *nd;
-  if (get_device("mynet0", &nd) < 0)
-  {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
-    return -1;
-  }
+//   struct nic_device *nd;
+//   if (get_device("mynet0", &nd) < 0)
+//   {
+//     cprintf("ERROR:send_arpRequest:Device not loaded\n");
+//     return -1;
+//   }
 
-  // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
-  if (send_arpRequest(nd, ipAddr) < 0)
-  {
-    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
-    return -1;
-  }
-  return 0;
-}
+//   // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+//   if (send_arpRequest(nd, ipAddr) < 0)
+//   {
+//     cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
+//     return -1;
+//   }
+//   return 0;
+// }
 
 static uint32_t e1000_reg_read(uint32_t reg_addr, struct e1000 *the_e1000)
 {

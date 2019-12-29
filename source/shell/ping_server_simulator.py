@@ -10,6 +10,6 @@ serverSocket.bind(('', 12000))
 print("start listening")
 while True: 
     message, address = serverSocket.recvfrom(1024)#接收客户端发送的信息，应该传送ip地址比较好 
-    print("From "+address+": "+message.decode())
-    message = message()  
+    #print(message,address)
+    print("From "+address[0]+": "+message.decode())
     serverSocket.sendto(message, address)
