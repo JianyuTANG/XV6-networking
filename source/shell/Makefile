@@ -295,12 +295,6 @@ ifndef CPUS
 CPUS := 2
 endif
 
-##############################################################################################################
-# The following line is deleted by Renjie Li, but exists in 6ziban version --noted by Tang Jianyu 2019.11.17 #
-# So please be careful when merging the file since I don't know the effect of this line                      #
-##############################################################################################################
-#QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $#(QEMUEXTRA)
-
 NIC=e1000 #i82559er
 PORT=26003
 QEMUEXTRA += -redir tcp:$(PORT)::7 -redir udp:$(PORT)::7 -net dump,file=qemu.pcap

@@ -3,7 +3,6 @@
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
 //
-#include "e1000.h"
 
 #include "types.h"
 #include "defs.h"
@@ -16,14 +15,15 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
-#include "x86.h"
 #include "memlayout.h"
+#include "x86.h"
 #include "date.h"
 
 #include "history.h"
 #include "var_in_kernel.h"
 #include "syscall.h"
 #include "network.h"
+#include "e1000.h"
 
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort *)P2V(0xb8000); // CGA memory
@@ -684,33 +684,6 @@ bad:
   return -1;
 }
 
-int sys_arp(void)
-{
-  char *ipAddr;
-  int size;
-
-  if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
-  {
-    cprintf("ERROR:sys_createARP:Failed to fetch arguments");
-    return -1;
-  }
-
-  struct nic_device *nd;
-  if (get_device("mynet0", &nd) < 0)
-  {
-    cprintf("ERROR:send_arpRequest:Device not loaded\n");
-    return -1;
-  }
-
-  // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
-  if (send_arpRequest(nd, ipAddr) < 0)
-  {
-    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
-    return -1;
-  }
-  return 0;
-}
-
 static uint32_t e1000_reg_read(uint32_t reg_addr, struct e1000 *the_e1000)
 {
   uint32_t value = *(uint32_t *)(the_e1000->membase + reg_addr);
@@ -922,4 +895,32 @@ sys_connect(void)
   }
 
   return fd;
+}
+
+
+int sys_arp(void)
+{
+  char *ipAddr;
+  int size;
+
+  if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+  {
+    cprintf("ERROR:sys_createARP:Failed to fetch arguments");
+    return -1;
+  }
+
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return -1;
+  }
+
+  // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+  if (send_arpRequest(nd, ipAddr) < 0)
+  {
+    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
+    return -1;
+  }
+  return 0;
 }
