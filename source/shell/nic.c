@@ -2,7 +2,7 @@
 #include "defs.h"
 
 int get_device(char* interface, struct nic_device** nd) {
-  cprintf("get device for interface=%s\n", interface);
+  // cprintf("get device for interface=%s\n", interface);
   /**
    *TODO: Use interface name to fetch device details
    *from a table of loaded devices.

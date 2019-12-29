@@ -1,10 +1,11 @@
 struct file {
-  enum { FD_NONE, FD_PIPE, FD_INODE } type;
+  enum { FD_NONE, FD_PIPE, FD_INODE, FD_SOCK } type;
   int ref; // reference count
   char readable;
   char writable;
   struct pipe *pipe;
   struct inode *ip;
+  struct sock *sock; // FD_SOCK
   uint off;
   char showable;
 };
@@ -15,7 +16,7 @@ struct inode {
   uint dev;           // Device number
   uint inum;          // Inode number
   int ref;            // Reference count
-  uint ctime;         //文件创建时间
+  uint ctime;         // 文件创建时间
   struct sleeplock lock; // protects everything below here
   int valid;          // inode has been read from disk?
 

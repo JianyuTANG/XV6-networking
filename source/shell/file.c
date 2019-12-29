@@ -10,6 +10,7 @@
 #include "sleeplock.h"
 #include "file.h"
 
+
 struct devsw devsw[NDEV];
 struct {
   struct spinlock lock;
@@ -77,6 +78,9 @@ fileclose(struct file *f)
     iput(ff.ip);
     end_op();
   }
+  else if(ff.type == FD_SOCK){
+    sockclose(f);
+  }
 }
 
 // Get metadata about file f.
@@ -108,6 +112,18 @@ fileread(struct file *f, char *addr, int n)
       f->off += r;
     iunlock(f->ip);
     return r;
+  }
+  if(f->type == FD_SOCK)
+  {
+    while(1)
+    {
+      r = sockread(f, addr, n);
+      if(r > 0)
+      {
+        return r;
+      }
+    }
+    return -1;
   }
   panic("fileread");
 }
@@ -152,6 +168,13 @@ filewrite(struct file *f, char *addr, int n)
     }
     return i == n ? n : -1;
   }
+  if(f->type == FD_SOCK)
+  {
+    socksendudp(f, n, addr);
+    // cprintf("finish wirte!");
+    return 1;
+  }
+  
   panic("filewrite");
 }
 

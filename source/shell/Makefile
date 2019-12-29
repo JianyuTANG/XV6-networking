@@ -30,12 +30,16 @@ OBJS = \
 	var_in_kernel.o\
 	sysconsole.o\
 	vm.o\
-	arp.o\
-	arp_frame.o\
+	network.o\
 	pci.o\
 	nic.o\
 	e1000.o\
 	util.o\
+	network_transmission.o\
+	sysnet.o\
+	
+
+# arp_frame.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -193,8 +197,6 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_checknic\
-	_arptest\
 	_cat\
 	_echo\
 	_forktest\
@@ -244,8 +246,10 @@ UPROGS=\
 	_jerry\
 	_timetest\
 	_stdtests\
-	_icmptest\
-
+	_ipconfig\
+	_sockettest\
+	_arptest\
+	_ping\
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua
 
@@ -290,12 +294,6 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 2
 endif
-
-##############################################################################################################
-# The following line is deleted by Renjie Li, but exists in 6ziban version --noted by Tang Jianyu 2019.11.17 #
-# So please be careful when merging the file since I don't know the effect of this line                      #
-##############################################################################################################
-#QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $#(QEMUEXTRA)
 
 NIC=e1000 #i82559er
 PORT=26003
