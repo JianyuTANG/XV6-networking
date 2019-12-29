@@ -250,7 +250,7 @@ int             loaduvm_from_kernel(pde_t *, char *, char *, char *, uint, uint)
 // int             send_arpRequest(char* interface, char* ipAddr, char* arpResp);
 
 //net_utils.c
-int             ping_executor(uint16_t sport, uint16_t dport, int attempts);
+int             ping_executor(char* dst, uint16_t sport, uint16_t dport, int attempts);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

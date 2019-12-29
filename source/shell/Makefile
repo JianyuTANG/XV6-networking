@@ -38,10 +38,9 @@ OBJS = \
 	util.o\
 	network_transmission.o\
 	sysnet.o\
-	
+	net_utils.o\
 
 # arp_frame.o\
-	net_utils.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
