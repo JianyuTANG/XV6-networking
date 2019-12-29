@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "user.h": "c",
+        "defs.h": "c",
+        "console.h": "c",
+        "network_stack.h": "c",
+        "proc.h": "c",
+        "time.h": "c"
+    }
+}
