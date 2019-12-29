@@ -717,41 +717,6 @@ static uint32_t e1000_reg_read(uint32_t reg_addr, struct e1000 *the_e1000)
   return value;
 }
 
-int sys_checknic(void)
-{
-  int HEAD;
-  int TAIL;
-
-  if (argint(0, &HEAD) < 0 || argint(1, &TAIL) < 0)
-  {
-    cprintf("Error: invalid parameter");
-    return -1;
-  }
-  struct e1000 *e1000p = (struct e1000 *)nic_devices[0].driver;
-  uint32_t head = e1000_reg_read(E1000_RDH, e1000p);
-  uint32_t tail = e1000_reg_read(E1000_RDT, e1000p);
-
-  cprintf("HEAD: %x , TAIL: %x\n", head, tail);
-
-  uint8_t *p = (uint8_t *)kalloc();
-  uint16_t length = 0;
-  {
-    uint8_t mask = 15;
-    e1000_recv(e1000p, p, &length);
-    if (length != 0)
-    {
-      for (int i = 0; i < length; ++i)
-      {
-        cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
-        ++p;
-      }
-      cprintf("\n");
-    }
-  }
-
-  return 0;
-}
-
 // Create the path new as a link to the same inode as old.
 int sys_show(void)
 {

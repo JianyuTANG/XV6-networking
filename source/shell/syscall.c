@@ -121,7 +121,6 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 
 extern int sys_arp(void);
-extern int sys_checknic(void);
 extern int sys_ipconfig(void);
 extern int sys_connect(void);
 
@@ -180,7 +179,6 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 
 [SYS_arp]     sys_arp,
-[SYS_checknic] sys_checknic,
 [SYS_ipconfig] sys_ipconfig,
 [SYS_connect] sys_connect,
 

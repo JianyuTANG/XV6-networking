@@ -198,7 +198,6 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_checknic\
 	_arptest\
 	_cat\
 	_echo\
