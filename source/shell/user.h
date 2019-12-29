@@ -30,7 +30,6 @@ int uptime(void);
 int arp(char*);
 int ipconfig(char* cmd, char* val);
 int connect(uint32_t, uint16_t, uint16_t);
-int ping(char*);
 
 int reparent(int,int);
 void jobs (void);
