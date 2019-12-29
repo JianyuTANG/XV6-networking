@@ -30,7 +30,6 @@ OBJS = \
 	var_in_kernel.o\
 	sysconsole.o\
 	vm.o\
-	arp.o\
 	network.o\
 	pci.o\
 	nic.o\
@@ -197,8 +196,6 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_checknic\
-	_arptest\
 	_cat\
 	_echo\
 	_forktest\
@@ -248,8 +245,9 @@ UPROGS=\
 	_jerry\
 	_timetest\
 	_stdtests\
-	_icmptest\
 	_ipconfig\
+	_sockettest\
+	_arptest\
 	_ping\
 
 
@@ -296,12 +294,6 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 2
 endif
-
-##############################################################################################################
-# The following line is deleted by Renjie Li, but exists in 6ziban version --noted by Tang Jianyu 2019.11.17 #
-# So please be careful when merging the file since I don't know the effect of this line                      #
-##############################################################################################################
-#QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $#(QEMUEXTRA)
 
 NIC=e1000 #i82559er
 PORT=26003

@@ -1,8 +1,6 @@
 #ifndef USER_H
 #define USER_H
 
-#include "util.h"
-
 struct stat;
 struct rtcdate;
 
@@ -30,8 +28,6 @@ int sleep(int);
 int uptime(void);
 
 int arp(char*);
-int checknic(int,int);
-int icmptest(int,int);
 int ipconfig(char* cmd, char* val);
 int connect(uint32_t, uint16_t, uint16_t);
 int ping(char*);

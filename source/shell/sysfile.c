@@ -3,7 +3,6 @@
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
 //
-#include "e1000.h"
 
 #include "types.h"
 #include "defs.h"
@@ -16,14 +15,15 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
-#include "x86.h"
 #include "memlayout.h"
+#include "x86.h"
 #include "date.h"
 
 #include "history.h"
 #include "var_in_kernel.h"
 #include "syscall.h"
 #include "network.h"
+#include "e1000.h"
 
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort *)P2V(0xb8000); // CGA memory
@@ -601,23 +601,6 @@ int sys_getcwd(void)
   return 0;
 }
 
-int sys_icmptest(void)
-{
-  struct nic_device *nd;
-  if (get_device("mynet0", &nd) < 0)
-  {
-    cprintf("ERROR:icmptest:Device not loaded\n");
-    return -1;
-  }
-
-  if (send_icmpRequest(nd, "10.0.2.2", 8, 0) < 0)
-  {
-    cprintf("ERROR:send request fails");
-    return -1;
-  }
-  return 0;
-}
-
 int sys_hide(void)
 {
   struct inode *ip, *dp;
@@ -731,41 +714,6 @@ static uint32_t e1000_reg_read(uint32_t reg_addr, struct e1000 *the_e1000)
 {
   uint32_t value = *(uint32_t *)(the_e1000->membase + reg_addr);
   return value;
-}
-
-int sys_checknic(void)
-{
-  int HEAD;
-  int TAIL;
-
-  if (argint(0, &HEAD) < 0 || argint(1, &TAIL) < 0)
-  {
-    cprintf("Error: invalid parameter");
-    return -1;
-  }
-  struct e1000 *e1000p = (struct e1000 *)nic_devices[0].driver;
-  uint32_t head = e1000_reg_read(E1000_RDH, e1000p);
-  uint32_t tail = e1000_reg_read(E1000_RDT, e1000p);
-
-  cprintf("HEAD: %x , TAIL: %x\n", head, tail);
-
-  uint8_t *p = (uint8_t *)kalloc();
-  uint16_t length = 0;
-  {
-    uint8_t mask = 15;
-    e1000_recv(e1000p, p, &length);
-    if (length != 0)
-    {
-      for (int i = 0; i < length; ++i)
-      {
-        cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
-        ++p;
-      }
-      cprintf("\n");
-    }
-  }
-
-  return 0;
 }
 
 // Create the path new as a link to the same inode as old.
@@ -989,5 +937,33 @@ int sys_ping(char* dest_)
   // {
   //   return -1;
   // }
+  return 0;
+}
+
+
+int sys_arp(void)
+{
+  char *ipAddr;
+  int size;
+
+  if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
+  {
+    cprintf("ERROR:sys_createARP:Failed to fetch arguments");
+    return -1;
+  }
+
+  struct nic_device *nd;
+  if (get_device("mynet0", &nd) < 0)
+  {
+    cprintf("ERROR:send_arpRequest:Device not loaded\n");
+    return -1;
+  }
+
+  // if (send_arpRequest(interface, ipAddr, arpResp) < 0)
+  if (send_arpRequest(nd, ipAddr) < 0)
+  {
+    cprintf("ERROR:sys_createARP:Failed to send ARP Request for IP:%s", "10.0.2.2");
+    return -1;
+  }
   return 0;
 }

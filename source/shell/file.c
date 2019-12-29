@@ -171,7 +171,7 @@ filewrite(struct file *f, char *addr, int n)
   if(f->type == FD_SOCK)
   {
     socksendudp(f, n, addr);
-    cprintf("finish wirte!");
+    // cprintf("finish wirte!");
     return 1;
   }
   
