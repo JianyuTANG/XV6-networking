@@ -247,7 +247,6 @@ UPROGS=\
 	_jerry\
 	_timetest\
 	_stdtests\
-	_icmptest\
 	_ipconfig\
 
 
