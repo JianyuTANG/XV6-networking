@@ -26,6 +26,11 @@ int main(int argc, char **argv)
     // {
     //     printf(1, "ifconfig command failed");
     // }
+    if(argc==1)
+    {
+        printf(1,"Usage: ping target_name \n");
+        return 0;
+    }
     int fd;
     char obuf[13] = "hello world!";
     uint32_t dst = ip2int(argv[1]);
