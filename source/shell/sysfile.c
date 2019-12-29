@@ -704,7 +704,6 @@ bad:
 int sys_arp(void)
 {
   char *ipAddr;
-  int size;
 
   if (argstr(0, &ipAddr) < 0) // || argint(3, &size) < 0 || argptr(2, &arpResp, size) < 0)
   {
@@ -974,6 +973,7 @@ sys_connect(void)
   }
 
   return fd;
+}
 int sys_ping(char* dest_)
 {
   char *_dest;
@@ -983,10 +983,11 @@ int sys_ping(char* dest_)
     return -1;
   }
   cprintf(_dest);
-  int src_port=0;
-  int dest_port=1;
-  if(ping_executor(_dest,src_port,dest_port)!=0){
+  uint16_t src_port=35536;
+  uint16_t dest_port=4333;
+  if(ping_executor(_dest,src_port,dest_port,4)!=0)
+  {
     return -1;
-  };
+  }
   return 0;
 }
