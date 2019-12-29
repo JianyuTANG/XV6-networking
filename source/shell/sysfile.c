@@ -601,23 +601,6 @@ int sys_getcwd(void)
   return 0;
 }
 
-int sys_icmptest(void)
-{
-  struct nic_device *nd;
-  if (get_device("mynet0", &nd) < 0)
-  {
-    cprintf("ERROR:icmptest:Device not loaded\n");
-    return -1;
-  }
-
-  if (send_icmpRequest(nd, "10.0.2.2", 8, 0) < 0)
-  {
-    cprintf("ERROR:send request fails");
-    return -1;
-  }
-  return 0;
-}
-
 int sys_hide(void)
 {
   struct inode *ip, *dp;

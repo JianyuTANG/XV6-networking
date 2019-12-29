@@ -32,7 +32,6 @@ SYSCALL(uptime)
 
 SYSCALL(arp)
 SYSCALL(checknic)
-SYSCALL(icmptest)
 SYSCALL(ipconfig)
 SYSCALL(connect)
 
