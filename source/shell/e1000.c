@@ -37,13 +37,13 @@ void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
 {
   cprintf("e1000 send:\n");
   int k;
-  for (k = 0; k != length; ++k)
-  {
-    if (k % 12 == 0 && k)
-      cprintf("\n");
-    cprintf("%x%x ", ((pkt[k]) >> 4) & (0xf), (pkt[k]) & (0xf));
-  }
-  cprintf("\n");
+  // for (k = 0; k != length; ++k)
+  // {
+  //   if (k % 12 == 0 && k)
+  //     cprintf("\n");
+  //   cprintf("%x%x ", ((pkt[k]) >> 4) & (0xf), (pkt[k]) & (0xf));
+  // }
+  // cprintf("\n");
 
   struct e1000 *e1000 = (struct e1000 *)driver;
   // cprintf("e1000 driver: Sending packet of length:0x%x %x starting at physical address:0x%x\n", length, sizeof(struct ethr_hdr), V2P(e1000->tx_buf[e1000->tbd_tail]));
@@ -62,7 +62,7 @@ void e1000_send(void *driver, uint8_t *pkt, uint16_t length)
   {
     udelay(2);
   }
-  cprintf("after while loop\n");
+  // cprintf("after while loop\n");
 }
 
 int e1000_setmac(void *driver, uint64_t macaddr)
@@ -326,8 +326,8 @@ void e1000_recv(void *driver, uint8_t *pkt, uint16_t *length)
   //memmove(pkt,(uint8_t*)P2V(the_e1000->rbd[i]->addr_l),(uint)(*length));
   memmove(pkt, P2V((uint8_t *)(uint32_t)(the_e1000->rbd[i]->addr)), (uint)(*length));
   the_e1000->rbd[i]->status = 0;
-  cprintf("ERRORS: %x\n", the_e1000->rbd[i]->errors);
-  cprintf("CHECKSUM: %x\n", the_e1000->rbd[i]->checksum);
+  // cprintf("ERRORS: %x\n", the_e1000->rbd[i]->errors);
+  // cprintf("CHECKSUM: %x\n", the_e1000->rbd[i]->checksum);
   the_e1000->rbd_tail = i;
 }
 
@@ -342,7 +342,7 @@ void e1000_intr(void)
   struct e1000 *e1000 = nd->driver;
   uint32_t icr = e1000_reg_read(E1000_ICR, e1000);
   cprintf("", icr);
-  cprintf("get new e1000 packet:\n");
+  // cprintf("get new e1000 packet:\n");
   uint8_t *p = (uint8_t *)kalloc();
   uint8_t *pp = p;
   uint16_t length = 0;
@@ -350,15 +350,15 @@ void e1000_intr(void)
   e1000_recv(e1000, p, &length);
   if (length != 0)
   {
-    cprintf("Receive packet:\n");
-    for (int i = 0; i < length; ++i)
-    {
-      if (i % 12 == 0 && i)
-        cprintf("\n");
-      cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
-      ++p;
-    }
-    cprintf("\n\n");
+    // cprintf("Receive packet:\n");
+    // for (int i = 0; i < length; ++i)
+    // {
+    //   if (i % 12 == 0 && i)
+    //     cprintf("\n");
+    //   cprintf("%x%x ", ((*p) >> 4) & mask, (*p) & mask);
+    //   ++p;
+    // }
+    // cprintf("\n\n");
     recv_Ethernet_frame(nd, pp, length);
   }
 
