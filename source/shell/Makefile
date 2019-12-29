@@ -249,6 +249,7 @@ UPROGS=\
 	_ipconfig\
 	_sockettest\
 	_arptest\
+	_ping\
 
 
 LUA_SCRIPTS=testmath.lua testos.lua testio.lua testtable.lua
