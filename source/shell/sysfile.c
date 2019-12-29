@@ -976,18 +976,18 @@ sys_connect(void)
 }
 int sys_ping(char* dest_)
 {
-  char *_dest;
-  if (argstr(0, &_dest) < 0)
-  {
-    cprintf("ERROR:sys_ping:Failed to fetch arguments");
-    return -1;
-  }
-  cprintf(_dest);
-  uint16_t src_port=35536;
-  uint16_t dest_port=4333;
-  if(ping_executor(_dest,src_port,dest_port,4)!=0)
-  {
-    return -1;
-  }
+  // char *_dest;
+  // if (argstr(0, &_dest) < 0)
+  // {
+  //   cprintf("ERROR:sys_ping:Failed to fetch arguments");
+  //   return -1;
+  // }
+  // cprintf(_dest);
+  // uint16_t src_port=35536;
+  // uint16_t dest_port=4333;
+  // if(ping_executor(_dest,src_port,dest_port,4)!=0)
+  // {
+  //   return -1;
+  // }
   return 0;
 }
