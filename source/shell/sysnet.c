@@ -24,7 +24,7 @@ struct sock {
 };
 
 static struct spinlock lock;
-static struct sock *sockets;
+static struct sock *sockets = 0;
 
 void
 sockinit(void)
@@ -140,8 +140,8 @@ int sockread(struct file *f, char *addr, int n)
 {
   // do something
   struct sock *s = f->sock;
-  struct mbufq rxq = s->rxq;
-  struct mbuf *cur = mbufq_pophead(&rxq);
+  struct mbufq *rxq = &(s->rxq);
+  struct mbuf *cur = mbufq_pophead(rxq);
   int len = -1;
   if(cur)
   {
