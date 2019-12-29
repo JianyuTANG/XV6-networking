@@ -8,6 +8,7 @@ int main(int argc,char** argv) {
   {
     printf(1, "fail to build socket on port 2000\n");
   }
+
   char *pos = argv[1];
   int i = 0;
   while(pos[i] != 0)
@@ -20,12 +21,15 @@ int main(int argc,char** argv) {
     exit();
   }
   printf(1, "sent to host: %s\n", argv[1]);
+
   char recvbuf[256];
-  int t=read(fd, recvbuf, 25);
+  int t=read(fd, recvbuf, 256);
   if(t>0)
   {
-    printf(1, "received: %s\n",recvbuf);
+    printf(1, "received: %s\n", recvbuf);
   }
+
   close(fd);
+  
   exit();
 }
