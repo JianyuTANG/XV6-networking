@@ -15,12 +15,12 @@
 
 
 struct sock {
-  struct sock *next; // the next socket in the list
-  uint32_t raddr;      // the remote IPv4 address
-  uint16_t lport;      // the local UDP port number
-  uint16_t rport;      // the remote UDP port number
-  struct spinlock lock; // protects the rxq
-  struct mbufq rxq;  // a queue of packets waiting to be received
+  struct sock *next;
+  uint32_t raddr;      // 对方IPv4地址
+  uint16_t lport;      // 本地UDP端口号
+  uint16_t rport;      // 对方UDP端口号
+  struct spinlock lock;
+  struct mbufq rxq;    // 待接收包队列
 };
 
 static struct spinlock lock;
